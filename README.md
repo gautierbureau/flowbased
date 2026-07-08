@@ -12,7 +12,8 @@ The written theory is in French (see `docs/`); the code and this README are in E
 
 ## What's inside
 
-- **A theory document** (`docs/flowbased.pdf`, in French) covering, from first
+- **A theory document** (`docs/flowbased.tex`, in French — build the PDF with
+  `make pdfs`) covering, from first
   principles: the DC power-flow derivation of **PTDF** (`PTDF = Bd·A·X`), the
   nodal→zonal step via **GSK**, the **RAM** (`Fmax − Fref − FRM`, min-RAM 70 %),
   the **CNEC** constraints, the **flow-based domain** (a polytope) and its
@@ -34,7 +35,7 @@ The written theory is in French (see `docs/`); the code and this README are in E
 ```
 flowbased-toolkit/
 ├── docs/
-│   └── flowbased.pdf/.tex           # the theory + operational document (French)
+│   └── flowbased.tex               # the theory + operational document (French); build the PDF with `make pdfs`
 ├── src/
 │   ├── ptdf_pypowsybl.py            # PTDF: NumPy analytic vs pypowsybl (asserted equal)
 │   ├── theorie_flowbased_pypowsybl.py  # full chain + domain plot (→ figures/)
