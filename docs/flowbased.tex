@@ -48,6 +48,8 @@
 \newcommand{\Fref}{F^{\mathrm{ref}}}
 \newcommand{\FRM}{\mathrm{FRM}}
 \newcommand{\GSK}{\mathrm{GSK}}
+% indicateur de liquidité (1..3 pastilles)
+\newcommand{\liq}[1]{\textcolor{coreblue}{\ifcase#1\or$\bullet\circ\circ$\or$\bullet\bullet\circ$\or$\bullet\bullet\bullet$\fi}}
 
 % ---- styles pour les schémas et frises ----
 \tikzset{
@@ -79,6 +81,77 @@
 \tableofcontents
 \vspace{0.6cm}
 \hrule
+
+% =====================================================================
+\section*{Sigles et acronymes}
+\addcontentsline{toc}{section}{Sigles et acronymes}
+
+{\small
+\renewcommand{\arraystretch}{1.12}
+\newcommand{\acg}[1]{\smallskip\noindent\textbf{\textcolor{coreblue}{#1}}\par\nopagebreak}
+
+\acg{Réseau, physique et calcul de capacité}
+\begin{tabular}{@{}p{2.6cm}@{\quad}p{11.5cm}@{}}
+\textbf{DC}      & load-flow linéarisé (\emph{Direct Current}), hypothèse de calcul des PTDF \\
+\textbf{$N\!-\!1$} & critère de sécurité : le réseau tient la perte de tout élément unique \\
+\textbf{PTDF}    & \emph{Power Transfer Distribution Factor} — sensibilité flux/injection \\
+\textbf{GSK}     & \emph{Generation Shift Key} — clé de répartition d'une variation de position nette sur les n\oe{}uds \\
+\textbf{GLSK}    & \emph{Generation and Load Shift Key} — GSK incluant aussi la charge \\
+\textbf{LODF}    & \emph{Line Outage Distribution Factor} — report de flux après perte d'une ligne \\
+\textbf{CNE}     & \emph{Critical Network Element} — élément de réseau surveillé \\
+\textbf{CNEC}    & \emph{Critical Network Element and Contingency} — CNE $+$ contingence \\
+\textbf{CBCO}    & \emph{Critical Branch / Critical Outage} — synonyme de CNEC \\
+\textbf{XNEC}    & élément de réseau critique pertinent au transfrontalier \\
+\textbf{$\Fmax$} & flux maximal admissible (limite thermique) ; \textbf{PATL} permanente, \textbf{TATL} temporaire \\
+\textbf{FRM}     & \emph{Flow Reliability Margin} — marge de fiabilité \\
+\textbf{RAM}     & \emph{Remaining Available Margin} — marge offerte au marché ; \textbf{minRAM} : plancher 70~\% \\
+\textbf{IGM/CGM} & \emph{Individual / Common Grid Model} — modèles de réseau individuel / commun \\
+\textbf{D2CF}    & \emph{Day-2 Congestion Forecast} — modèle/prévision à J-2 \\
+\textbf{CGMES}   & format standard d'échange des modèles de réseau \\
+\end{tabular}
+
+\acg{Acteurs et cadre réglementaire}
+\begin{tabular}{@{}p{2.6cm}@{\quad}p{11.5cm}@{}}
+\textbf{GRT / TSO} & Gestionnaire de Réseau de Transport / \emph{Transmission System Operator} \\
+\textbf{RCC}     & \emph{Regional Coordination Centre} (ex-RSC) — p.\,ex.\ Coreso, TSCNET \\
+\textbf{CCC}     & \emph{Coordinated Capacity Calculator} — rôle des RCC pour le calcul du domaine \\
+\textbf{JAO}     & \emph{Joint Allocation Office} — publication du domaine, droits de long terme \\
+\textbf{NEMO}    & \emph{Nominated Electricity Market Operator} — bourse désignée \\
+\textbf{ENTSO-E} & association européenne des GRT électricité \\
+\textbf{ACER}    & agence européenne de coopération des régulateurs \\
+\textbf{CACM}    & \emph{Capacity Allocation and Congestion Management} — règlement 2015/1222 \\
+\textbf{SO GL}   & \emph{System Operation Guideline} — règlement 2017/1485 \\
+\textbf{CCR}     & \emph{Capacity Calculation Region} — région de calcul (p.\,ex.\ Core) \\
+\end{tabular}
+
+\acg{Marché et horizons}
+\begin{tabular}{@{}p{2.6cm}@{\quad}p{11.5cm}@{}}
+\textbf{NTC/ATC} & \emph{Net / Available Transfer Capacity} (avec \textbf{TTC}, \textbf{TRM}) — capacité « en boîte » \\
+\textbf{FTR/PTR} & \emph{Financial / Physical Transmission Rights} — droits de transport de long terme \\
+\textbf{SDAC}    & \emph{Single Day-Ahead Coupling} — couplage day-ahead pan-européen \\
+\textbf{SIDC}    & \emph{Single Intraday Coupling} — couplage intraday \\
+\textbf{EUPHEMIA}& algorithme (MILP) de clearing du day-ahead (et des IDA) \\
+\textbf{XBID}    & carnet d'ordres intraday continu européen \\
+\textbf{IDA}     & \emph{Intraday Auctions} — enchères intraday \\
+\textbf{MTU/PTU} & \emph{Market / Program Time Unit} — pas de temps (15~min) \\
+\textbf{EPEX / EEX} & bourse spot (EPEX SPOT) / bourse des dérivés (EEX) \\
+\end{tabular}
+
+\acg{Équilibrage et mécanismes français}
+\begin{tabular}{@{}p{2.6cm}@{\quad}p{11.5cm}@{}}
+\textbf{RE / BRP} & Responsable d'Équilibre / \emph{Balance Responsible Party} \\
+\textbf{MA}      & Mécanisme d'Ajustement (RTE) \\
+\textbf{FCR}     & \emph{Frequency Containment Reserve} — réserve primaire \\
+\textbf{aFRR}    & \emph{automatic Frequency Restoration Reserve} — réserve secondaire \\
+\textbf{mFRR}    & \emph{manual Frequency Restoration Reserve} — réserve tertiaire manuelle \\
+\textbf{RR}      & \emph{Replacement Reserve} — réserve de remplacement \\
+\textbf{NEBEF}   & Notification d'Échange de Blocs d'Effacement (valorisation de l'effacement) \\
+\textbf{PICASSO} & plateforme européenne d'activation de l'aFRR \\
+\textbf{MARI}    & plateforme européenne d'activation du mFRR \\
+\textbf{TERRE}   & plateforme européenne d'activation de la RR \\
+\textbf{IGCC}    & \emph{International Grid Control Cooperation} — netting des déséquilibres \\
+\end{tabular}
+}
 
 % =====================================================================
 \section{Principe général du couplage flow-based}
@@ -433,10 +506,27 @@ une contrainte $+\Fmax$ et une contrainte $-\Fmax$ par CNEC.
 % =====================================================================
 \section{Le domaine flow-based et ses sommets}
 
-L'ensemble de toutes les contraintes de CNEC définit un \textbf{polytope
-convexe} dans l'espace des positions nettes : c'est le \emph{domaine
-flow-based}, l'ensemble de toutes les combinaisons de $\NP_z$ respectant
-simultanément \emph{toutes} les contraintes du réseau.
+Chaque CNEC fournit \emph{une} inégalité $\sum_z \PTDF_{c,z}\,\Delta\NP_z \le
+\RAM_c$. Géométriquement, une inégalité linéaire découpe l'espace en deux :
+un \textbf{demi-espace} autorisé (le réseau tient) et son complémentaire
+interdit (surcharge). Le \textbf{domaine flow-based} est simplement
+l'\emph{intersection de tous ces demi-espaces} — un \textbf{polytope convexe}
+dans l'espace des positions nettes, l'ensemble des combinaisons de $\NP_z$
+respectant simultanément \emph{toutes} les contraintes du réseau. « Convexe »
+signifie ici : si deux points d'échange sont réalisables, tout point
+intermédiaire l'est aussi.
+
+\paragraph{Intérieur, bord, extérieur — ce que ça veut dire.}
+\begin{itemize}[nosep,leftmargin=1.4em]
+  \item \textbf{à l'intérieur} : \emph{tous} les CNEC ont une marge positive
+        — le réseau est sûr, avec du « mou » partout ;
+  \item \textbf{sur le bord} : au moins un CNEC est \emph{saturé} (marge nulle)
+        — c'est la limite de sécurité, celle qui crée une congestion ;
+  \item \textbf{à l'extérieur} : au moins un CNEC est \emph{violé} — état
+        refusé, il faudrait une action corrective pour y accéder.
+\end{itemize}
+Le résultat du couplage de marché est, par construction, un point de ce
+domaine (intérieur ou bord).
 
 \begin{defbox}{Sommets (\textit{vertices})}
 Les \textbf{sommets} sont les points extrêmes — les « coins » — du polytope,
@@ -450,6 +540,35 @@ dizaines pour Core), on le \textbf{projette} sur deux axes en fixant les
 autres positions nettes. Chaque contrainte devient alors une \emph{droite},
 la région admissible un \textbf{polygone convexe} : ses \emph{côtés} sont
 les CNEC contraignants, ses \emph{sommets} les intersections de ces droites.
+
+\begin{center}
+\begin{tikzpicture}[scale=0.92,font=\footnotesize,>={Stealth[length=2mm]}]
+  % polygone admissible (intersection de demi-plans)
+  \coordinate (P1) at (2.9,0.7);
+  \coordinate (P2) at (1.5,2.7);
+  \coordinate (P3) at (-1.1,2.5);
+  \coordinate (P4) at (-2.3,0.3);
+  \coordinate (P5) at (0.2,-1.8);
+  \fill[coreblue!12] (P1)--(P2)--(P3)--(P4)--(P5)--cycle;
+  \draw[coreblue,very thick] (P1)--(P2)--(P3)--(P4)--(P5)--cycle;
+  % prolonger deux arêtes en droites (hyperplans) pour montrer les demi-plans
+  \draw[coreblue!55,dashed] ($(P1)!-0.35!(P2)$)--($(P1)!1.35!(P2)$);
+  \draw[coreblue!55,dashed] ($(P4)!-0.35!(P5)$)--($(P4)!1.4!(P5)$);
+  % labels aretes / sommet
+  \node[coreblue,anchor=west] at (2.55,1.75) {CNEC $c_1$};
+  \node[coreblue,anchor=east] at (-1.15,-0.85) {CNEC $c_2$};
+  \fill (P2) circle (1.3pt);
+  \node[anchor=south,align=center] at (1.55,2.82) {\scriptsize sommet\\[-2pt]\scriptsize (2 saturés)};
+  \node[anchor=south,align=center] at (-1.1,2.62) {\scriptsize arête\\[-2pt]\scriptsize (1 saturé)};
+  % point de marché
+  \fill[orange!85!black] (0.4,0.5) circle (1.6pt);
+  \node[orange!70!black,anchor=west] at (0.55,0.45) {point de marché};
+  \node[coreblue!70!black] at (1.15,-0.7) {domaine sûr};
+  % axes
+  \draw[->,coregrey] (-2.8,0)--(3.5,0) node[right]{$\Delta\NP_A$};
+  \draw[->,coregrey] (0,-2.2)--(0,3.2) node[above]{$\Delta\NP_B$};
+\end{tikzpicture}
+\end{center}
 
 % =====================================================================
 \section{Lecture géométrique : droites, hyperplans et sommets}
@@ -516,6 +635,21 @@ Trois idées rendent la géométrie intuitive :
   \draw[->,coregrey] (0,-0.9)--(0,3.9) node[above]{$\Delta\mathrm{NP}_B$};
 \end{tikzpicture}
 \end{center}
+
+\paragraph{Où se place le résultat du marché ?} Le couplage (EUPHEMIA) choisit
+le point $\Delta\mathrm{NP}$ qui maximise le bien-être social \emph{dans} cette
+pièce. Trois cas, riches de sens économique :
+\begin{itemize}[nosep,leftmargin=1.4em]
+  \item \textbf{strictement à l'intérieur} : aucun mur touché, aucune
+        congestion — les zones concernées ont le \emph{même} prix ;
+  \item \textbf{sur une arête ou un sommet} : un ou deux CNEC saturés
+        deviennent \emph{contraignants}~; leur prix de l'ombre fait diverger
+        les prix zonaux — un \emph{spread} s'ouvre (c'est le lien
+        géométrie~$\leftrightarrow$~prix développé au \S\ref{sec:trader}) ;
+  \item \textbf{au-delà d'un sommet} : impossible sans repousser un mur, ce que
+        seule une \textbf{action corrective} peut faire — c'est tout l'objet du
+        RAO (\S\ref{sec:rao}), qui \emph{agrandit} le domaine à moindre coût.
+\end{itemize}
 
 % =====================================================================
 \section{Exemple complet à trois zones}
@@ -1112,6 +1246,59 @@ de valeur, dans la limite de ce que le réseau permet — c'est-à-dire dans le
         coût, l'énergie de réglage sous la capacité transfrontalière restante.
 \end{itemize}
 
+\subsection{Les produits échangés et leur liquidité}
+\label{sec:produits}
+
+La même énergie se négocie sur une \emph{succession de marchés}, du plus
+lointain au plus proche du temps réel. À chaque horizon correspond un
+\textbf{produit} avec sa profondeur (sa \emph{liquidité}) propre.
+
+\begin{center}\footnotesize
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{@{}p{2.5cm}p{5.2cm}p{3.1cm}p{2.6cm}@{}}
+\toprule
+\textbf{Produit} & \textbf{Nature} & \textbf{Lieu} & \textbf{Liquidité} \\
+\midrule
+\textbf{Terme} \newline (futures) &
+Couverture (\emph{hedging}) : baseload / peakload, échéances année-tri\-mestre-mois &
+EEX + \emph{gré à gré} (OTC) &
+\liq{2}\ concentrée sur les échéances standard \\
+\textbf{Day-ahead} &
+Une enchère quotidienne, horaire (15~min depuis 2025) &
+EPEX SPOT (SDAC) &
+\liq{3}\ la plus forte — prix de \emph{référence} \\
+\textbf{Intraday} &
+Ajustement en continu + enchères, jusqu'à $\sim$1\,h avant livraison &
+EPEX SPOT (SIDC) &
+\liq{2}\ croissante (tirée par les EnR) \\
+\textbf{Ajustement} &
+Offres activées par le GRT en temps réel (pas un marché ouvert) &
+RTE (mécanisme d'ajustement) &
+\liq{1}\ la plus faible \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent Le fil conducteur~: le \textbf{day-ahead} est le marché le plus
+liquide et sert de \emph{prix de référence}~; le \textbf{terme} est liquide
+mais surtout sur quelques produits standard (Cal+1, prochains
+trimestres/mois)~; l'\textbf{intraday} monte en puissance avec l'éolien et le
+solaire (on rééquilibre au fil des prévisions)~; l'\textbf{ajustement} est le
+plus fin mais le moins profond.
+
+\begin{rembox}{Le lien avec EPEX SPOT}
+\textbf{EPEX SPOT} est la \emph{bourse spot} (un NEMO au sens CACM) de la
+France et de l'Europe centrale (DE, BE, NL, CH, GB\ldots). Elle opère
+concrètement les deux marches courts~: l'\textbf{enchère day-ahead} (dans le
+cadre du SDAC, clearing par EUPHEMIA) et l'\textbf{intraday} (SIDC / XBID).
+Le prix EPEX~SPOT day-ahead France est \emph{le} prix spot de référence.\\[3pt]
+Le rapport au flow-based est direct~: EPEX collecte les ordres, tandis que le
+\emph{domaine flow-based} (calculé par RTE/Coreso, publié via JAO) est fourni
+comme \textbf{contrainte réseau} à EUPHEMIA. Le couplage détermine alors, d'un
+seul coup, les flux transfrontaliers et le \textbf{prix de chaque zone} — dont
+celui de la France.
+\end{rembox}
+
 \subsection{Le point de vue du trader : lire le flux prévu}
 \label{sec:trader}
 
@@ -1272,6 +1459,66 @@ complémentaires.
 Le c\oe{}ur algorithmique de cette optimisation — choisir le meilleur jeu
 d'actions correctives au moindre coût — est précisément le \textbf{RAO},
 détaillé maintenant.
+
+\subsection{Zoom France : l'ajustement et le responsable d'équilibre}
+\label{sec:ajustement}
+
+Une fois les marchés fermés, l'équilibre \emph{production $=$ consommation}
+doit encore être tenu à la seconde près. En France, RTE s'appuie sur deux
+dispositifs complémentaires~: la \textbf{responsabilité d'équilibre} (qui
+\emph{responsabilise} chaque acteur en amont) et le \textbf{mécanisme
+d'ajustement} (qui \emph{corrige} en temps réel).
+
+\begin{defbox}{Le responsable d'équilibre (RE / \emph{BRP})}
+Tout site d'injection ou de soutirage est rattaché à un \textbf{responsable
+d'équilibre}. Celui-ci s'engage, devant RTE, à \emph{équilibrer financièrement}
+son \textbf{périmètre}~: sur chaque pas de temps,
+\[
+  \underbrace{\text{injections}+\text{achats}}_{\text{entrées}}
+  \;=\;
+  \underbrace{\text{soutirages}+\text{ventes}}_{\text{sorties}} .
+\]
+A posteriori, RTE mesure l'\textbf{écart} de chaque RE et le facture (ou le
+rémunère) au \textbf{prix de règlement des écarts}, indexé sur le coût de
+l'ajustement réellement activé. C'est cette facturation qui incite chacun à
+bien prévoir et à s'équilibrer sur les marchés.
+\end{defbox}
+
+\begin{center}
+\begin{tikzpicture}[font=\footnotesize,>={Stealth[length=2.2mm]}]
+  \node[draw=coreblue,rounded corners=3pt,fill=coreblue!5,
+        minimum width=4.4cm,minimum height=1.9cm] (P) at (0,0) {};
+  \node[coreblue,anchor=north,font=\scriptsize] at (P.north){périmètre du RE};
+  \draw[->,coreblue!70] (-3.1,0.5) node[left,align=right,font=\scriptsize]{injections\\ achats} -- (P.west|-0,0.5);
+  \draw[<-,coreblue!70] (P.east|-0,0.5) -- (3.1,0.5) node[right,align=left,font=\scriptsize]{soutirages\\ ventes};
+  \node[align=center,font=\scriptsize] at (0,-0.15){entrées $=$ sorties~?};
+  \draw[->,orange!80!black,thick] (P.south) -- ++(0,-0.75)
+     node[below,align=center,font=\scriptsize,text=orange!70!black]{\textbf{écart} → règlement\\ au prix des écarts};
+\end{tikzpicture}
+\end{center}
+
+\paragraph{Le mécanisme d'ajustement (MA).} En temps réel, producteurs,
+consommateurs et effacements soumettent à RTE des \textbf{offres
+d'ajustement} (à la hausse ou à la baisse). RTE les active par \emph{ordre de
+mérite} (le moins cher d'abord) pour combler l'écart résiduel du système
+\emph{et} lever des congestions locales. Le coût des offres activées fixe le
+prix de l'énergie d'ajustement — et donc, par ricochet, le prix des écarts.
+
+\paragraph{Les réserves de fréquence.} L'ajustement s'appuie sur des
+réserves hiérarchisées, de plus en plus lentes~:
+\begin{itemize}[nosep,leftmargin=1.4em]
+  \item \textbf{FCR} (primaire) — automatique, en quelques secondes,
+        symétrique, mutualisée à l'échelle européenne~;
+  \item \textbf{aFRR} (secondaire) — automatique, pilotée par un signal de
+        RTE (plateforme \textbf{PICASSO})~;
+  \item \textbf{mFRR / RR} (tertiaire) — activées manuellement (plateformes
+        \textbf{MARI} / \textbf{TERRE}).
+\end{itemize}
+Le \textbf{NEBEF} permet en outre de valoriser l'\emph{effacement} de
+consommation directement sur les marchés, et l'\textbf{IGCC} \emph{nette} les
+déséquilibres de sens opposés entre pays avant toute activation. On retrouve
+ici les plateformes européennes citées au \S\ref{sec:couplagepratique}~:
+l'équilibrage français est, lui aussi, largement \emph{coordonné}.
 
 % =====================================================================
 \section{Processus coordonné et RAO (OpenRAO)}
