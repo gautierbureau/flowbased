@@ -378,6 +378,7 @@ Trois idées rendent la géométrie intuitive :
 
 % =====================================================================
 \section{Exemple complet à trois zones}
+\label{sec:exemple}
 
 \subsection{Réseau et hypothèses}
 
@@ -969,6 +970,119 @@ de valeur, dans la limite de ce que le réseau permet — c'est-à-dire dans le
         MARI pour le mFRR, IGCC pour le \emph{netting}) activent, au meilleur
         coût, l'énergie de réglage sous la capacité transfrontalière restante.
 \end{itemize}
+
+\subsection{Le point de vue du trader : lire le flux prévu}
+\label{sec:trader}
+
+Jusqu'ici tout est vu du côté des GRT. Mais le domaine flow-based est aussi,
+et surtout, un \emph{outil pour le trader}. Une fois le domaine publié (JAO),
+le participant de marché dispose, pour chaque CNEC, de deux ingrédients~: ses
+\textbf{PTDF} zonaux et son \textbf{RAM}. Avec seulement cela — et \emph{sans
+aucun modèle de réseau} — il peut, pour n'importe quel scénario de marché,
+reconstituer le \textbf{flux prévu} sur chaque CNEC et savoir quelle contrainte
+va « mordre ». C'est là que le trader relit, à son profit, l'équation centrale
+de ce document.
+
+\begin{defbox}{L'équation du flux prévu \textit{(predicted flow)}}
+Pour un CNEC $c$ et un scénario de positions nettes $\Delta\NP_z$ (écarts au
+programme de référence), le flux prévu est
+\[
+  \boxed{\;F_c \;=\; \Fref_c \;+\; \sum_z \PTDF_{c,z}\,\Delta\NP_z\;}
+\]
+et la limite de sécurité $F_c \le \Fmax_c-\FRM_c$ équivaut exactement à
+l'inéquation du domaine
+\[
+  \sum_z \PTDF_{c,z}\,\Delta\NP_z \;\le\; \RAM_c ,
+\]
+la \emph{marge résiduelle} du trader étant
+\[
+  m_c \;=\; \RAM_c - \sum_z \PTDF_{c,z}\,\Delta\NP_z \;\ge\; 0 .
+\]
+\end{defbox}
+
+\noindent\textbf{Comment le trader le lit}~:
+\begin{itemize}[nosep,leftmargin=1.4em]
+  \item le $\PTDF_{c,z}$ est une \emph{sensibilité}~: de combien 1~MW
+        d'export supplémentaire de la zone $z$ charge le CNEC $c$~;
+  \item le $\RAM_c$ est la \emph{place disponible} sur $c$ avant sa limite~;
+  \item les $\Delta\NP_z$ sont \emph{sa vue de marché} (sa prévision des
+        positions nettes des zones)~;
+  \item la marge $m_c$ qui tombe à zéro la première désigne le \textbf{CNEC
+        contraignant}~: c'est lui qui crée la congestion et \emph{ouvre un
+        spread de prix} entre zones.
+\end{itemize}
+
+\begin{center}
+\begin{tikzpicture}[node distance=6mm]
+ \node[io,text width=42mm] (a){\textbf{Scénario du trader}\\ positions nettes $\Delta\NP_z$ attendues};
+ \node[io,text width=42mm,right=10mm of a] (b){\textbf{Domaine publié} (JAO)\\ $\PTDF_{c,z}$ et $\RAM_c$ par CNEC};
+ \coordinate (mid) at ($(a)!0.5!(b)$);
+ \node[proc,text width=78mm,below=8mm of mid] (eq){\textbf{Flux prévu} sur chaque CNEC\\[1pt] $F_c=\Fref_c+\sum_z \PTDF_{c,z}\,\Delta\NP_z$};
+ \node[proc,text width=78mm,below=of eq] (m){\textbf{Marge résiduelle} par CNEC\\[1pt] $m_c=\RAM_c-\sum_z \PTDF_{c,z}\,\Delta\NP_z$};
+ \node[io,text width=78mm,below=of m] (s){\textbf{CNEC contraignant} ($m_c\to 0$)\\ → sens et ampleur du \emph{spread} de prix attendu};
+ \draw[fl](a.south)--(eq.north);
+ \draw[fl](b.south)--(eq.north);
+ \draw[fl](eq)--(m); \draw[fl](m)--(s);
+\end{tikzpicture}
+\end{center}
+
+\paragraph{Exemple chiffré : « combien puis-je échanger A→B ? »}
+Reprenons l'exemple à trois zones (\S\ref{sec:exemple}, $\Fref=0$). Le trader
+veut pousser un échange $A\!\to\!B$ de $q$~MW, la zone~C restant neutre~:
+$\Delta\NP_A=+q$, $\Delta\NP_B=-q$, $\Delta\NP_C=0$. Sur chaque CNEC, la
+variation de flux est
+\[
+  \Delta F_c=(\PTDF_{c,A}-\PTDF_{c,B})\,q ,
+  \qquad\text{d'où}\qquad
+  q \le \frac{\RAM_c}{\PTDF_{c,A}-\PTDF_{c,B}}\quad(\text{si }>0).
+\]
+
+\begin{center}
+\renewcommand{\arraystretch}{1.25}
+\begin{tabular}{l c c c l}
+\toprule
+CNEC & $\PTDF_A-\PTDF_B$ & $\RAM$ & $q_{\max}$ (MW) & \\
+\midrule
+$L_{AB}$        & $+\tfrac23$ & 200 & \textbf{300} & $\leftarrow$ contraignant \\
+$L_{AC}$        & $+\tfrac13$ & 300 & 900          & \\
+$L_{BC}$        & $-\tfrac13$ & 300 & ---          & (borne le sens $B\!\to\!A$) \\
+$L_{BC}\,|\,L_{AC}$ & $0$     & 500 & $\infty$     & (insensible) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent Le trader lit immédiatement~: il peut échanger au plus
+$q_{\max}=\mathbf{300}$~MW de A vers B, et c'est $L_{AB}$ qui l'arrête. À ce
+point, le flux prévu sur $L_{AB}$ vaut
+$F_{AB}=\Fref+\tfrac23\times 300=200$~MW, soit exactement
+$\Fmax-\FRM=250-50$~: la contrainte de sécurité est atteinte pile.
+
+\paragraph{Du flux prévu au prix.} Tant que $m_c>0$ partout, rien n'empêche
+l'échange et les prix des zones restent alignés. Dès qu'un CNEC sature, son
+\textbf{prix de l'ombre} (le dual $\mu_c$ dans EUPHEMIA) devient positif et se
+répercute sur les prix zonaux~:
+\[
+  \pi_z \;\approx\; \pi_{\text{ref}} - \sum_c \mu_c\,\PTDF_{c,z} ,
+\]
+si bien qu'un \emph{spread} s'ouvre entre les zones que le CNEC contraignant
+sépare. Anticiper \emph{quel} CNEC va mordre, c'est donc anticiper \emph{quel}
+spread va s'écarter — l'information qui vaut de l'argent~: elle oriente les
+positions day-ahead et fixe la valeur d'un droit de transport de long terme
+(FTR/PTR), qui n'est autre que la \emph{rente de congestion} espérée
+$\mu_c\times\RAM_c$.
+
+\begin{rembox}{Deux réflexes de trader propres au flow-based}
+\textbf{1. Regarder \emph{tous} les CNEC, pas seulement « sa » frontière.}
+Parce que le flow-based couple toutes les frontières via les PTDF, un spread
+peut s'ouvrir sur une frontière qui n'est elle-même pas congestionnée~: c'est
+un CNEC \emph{distant} qui sature. Un flux peut même sembler
+« non-intuitif » (aller d'une zone chère vers une zone moins chère) tant
+qu'il respecte le domaine.\\[2pt]
+\textbf{2. Le plancher minRAM~(70\%) est un garde-fou.} Il garantit qu'au
+moins $0{,}7\,\Fmax$ est offert au marché sur chaque CNEC~: le trader sait
+qu'une part minimale de capacité restera toujours disponible, quelles que
+soient les boucles de flux internes.
+\end{rembox}
 
 \subsection{L'analyse de sécurité coordonnée (CSA) dans la région Core}
 \label{sec:csa}

@@ -16,6 +16,9 @@ venv/
 *.bbl
 *.blg
 
+# Compiled document PDF (built from docs/flowbased.tex via `make pdfs`)
+docs/*.pdf
+
 # OS
 .DS_Store
 Thumbs.db
