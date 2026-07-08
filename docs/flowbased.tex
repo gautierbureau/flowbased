@@ -1784,4 +1784,124 @@ soit une \emph{face} du domaine. \\
 \end{tabular}
 \end{center}
 
+% =====================================================================
+\appendix
+\section{Sujets avancés (annexe)}
+\label{sec:annexe}
+
+Cette annexe survole des sujets qui prolongent le cœur du document, sans y être
+indispensables. Ils intéressent surtout le lecteur qui veut aller au-delà du
+modèle flow-based « de base ».
+
+\subsection{Couplage hybride avancé (AHC) et liaisons HVDC}
+\label{sec:ahc}
+
+Aux \textbf{bordures externes} de la région flow-based (frontières avec des
+zones restées en ATC) et pour les \textbf{liaisons à courant continu}, le
+domaine FB « pur » ne suffit pas.
+
+\begin{defbox}{SHC vs AHC}
+\textbf{SHC} (\emph{Standard Hybrid Coupling})~: les frontières externes sont
+traitées comme des échanges \emph{fixés en entrée} — le couplage ne les
+co-optimise pas.\\[3pt]
+\textbf{AHC} (\emph{Advanced Hybrid Coupling})~: on \emph{injecte dans le
+domaine FB les PTDF} de ces frontières externes, de sorte qu'EUPHEMIA les
+co-optimise avec les échanges internes, en tenant compte de leur impact sur
+les CNEC internes. Déployé sur les bordures externes de Core~; enjeu central
+de l'interface \textbf{Core--Nordic}.
+\end{defbox}
+
+\noindent \textbf{HVDC.} Contrairement à une ligne AC (dont le flux est imposé
+par les lois de Kirchhoff), une liaison à courant continu a un flux
+\emph{pilotable} (une consigne). Dans le flow-based « évolué », cette consigne
+devient une \emph{variable de décision} bornée par le domaine, que le couplage
+peut optimiser~; les HVDC servent aussi d'\textbf{actions correctives} dans le
+RAO, au même titre que les PST.
+
+\subsection{Le découpage des zones de dépôt (\emph{bidding zone review})}
+\label{sec:bzr}
+
+Une zone de dépôt suppose \emph{aucune congestion interne}, donc un prix
+unique. En pratique, des congestions internes existent (gérées par
+redispatching national)~: c'est l'envers des flux internes et de bouclage
+(\S\ref{sec:loopflow}). La \textbf{revue des zones} (ACER / ENTSO-E) examine
+périodiquement si le découpage reste optimal, et étudie des configurations
+alternatives (p.\,ex.\ scinder l'Allemagne).
+
+\begin{center}
+\begin{tikzpicture}[font=\scriptsize,>={Stealth[length=2mm]}]
+  \node[draw=coreblue,rounded corners=3pt,fill=coreblue!6,
+        minimum width=3cm,minimum height=1.6cm] (Z) at (0,0){};
+  \draw[red!70!black,dashed,thick] (0,0.8)--(0,-0.8);
+  \node[above,font=\scriptsize] at (0,0.85){1 zone (prix unique $\pi$)};
+  \node[below,align=center,font=\scriptsize] at (0,-0.85){congestion interne\\ → redispatch};
+  \draw[->,coregrey,very thick] (1.9,0)--(3.1,0) node[midway,above]{scission};
+  \node[draw=coreblue,rounded corners=3pt,fill=coreblue!6,
+        minimum width=1.4cm,minimum height=1.6cm] (Z1) at (4.3,0){$\pi_1$};
+  \node[draw=coreblue,rounded corners=3pt,fill=coreblue!6,
+        minimum width=1.4cm,minimum height=1.6cm,right=2mm of Z1] (Z2){$\pi_2$};
+  \node[above,align=center,font=\scriptsize] at (5.1,0.85){2 zones (2 prix)};
+  \node[below,align=center,font=\scriptsize] at (5.1,-0.85){la congestion passe\\ dans le prix};
+\end{tikzpicture}
+\end{center}
+
+\noindent Le compromis~: des zones \emph{plus petites} donnent des prix qui
+reflètent mieux les congestions (bons signaux de localisation, moins de
+redispatch) mais réduisent la \emph{liquidité} et se heurtent à des résistances
+politiques~; des zones \emph{plus grandes} sont plus liquides et simples, mais
+génèrent plus de redispatch et de flux de bouclage.
+
+\subsection{Les ordres complexes d'EUPHEMIA}
+\label{sec:ordres}
+
+Au-delà des ordres horaires simples (courbes prix--quantité), EUPHEMIA doit
+gérer des ordres \emph{non convexes}~:
+\begin{itemize}[nosep,leftmargin=1.4em]
+  \item \textbf{ordres de blocs}~: tout-ou-rien sur plusieurs heures, avec un
+        ratio d'acceptation minimal et une condition de revenu minimal~;
+  \item \textbf{familles de blocs} liés ou exclusifs, ordres flexibles~;
+  \item \textbf{ordres PUN} (Italie) et ordres à revenu minimal (péninsule
+        ibérique).
+\end{itemize}
+Ces non-convexités font du couplage un gros \textbf{MILP}~: il n'existe pas
+toujours de prix marginal unique compatible avec tous les ordres, d'où les
+\textbf{blocs paradoxalement rejetés} (dans la monnaie mais écartés pour
+préserver l'unicité des prix zonaux) et des règles de partage de la réduction
+(\emph{curtailment}) entre bourses.
+
+\subsection{L'équilibrage européen en profondeur}
+\label{sec:balancing-eu}
+
+Le règlement \textbf{EBGL} (2017/2195) définit un modèle cible~: produits
+standard d'énergie de réglage, listes de mérite communes et activation
+\emph{transfrontalière}. Les plateformes~:
+\begin{itemize}[nosep,leftmargin=1.4em]
+  \item \textbf{IGCC}~: \emph{netting} des déséquilibres de sens opposés avant
+        toute activation~;
+  \item \textbf{PICASSO} (aFRR), \textbf{MARI} (mFRR), \textbf{TERRE} (RR)~:
+        plateformes communes dotées d'une \emph{fonction d'optimisation
+        d'activation} qui retient les offres les moins chères sous la capacité
+        transfrontalière restante réservée à l'équilibrage~;
+  \item coopération \textbf{FCR} (achat mutualisé de réserve primaire).
+\end{itemize}
+On distingue la \textbf{capacité} (réserve mise à disposition) de
+l'\textbf{énergie} (activation effective). Le règlement des écarts s'appuie sur
+l'énergie de réglage activée~; un \emph{prix d'écart unique} incite chaque
+acteur à aider le système plutôt qu'à le déséquilibrer.
+
+\subsection{Autres chantiers}
+\label{sec:chantiers}
+
+\begin{itemize}[nosep,leftmargin=1.4em]
+  \item \textbf{Presolve du domaine}~: parmi des milliers de couples
+        CNEC\,$\times$\,contingence, seules quelques contraintes \emph{non
+        redondantes} définissent réellement le polytope~; c'est ce
+        « domaine présolvé », réduit et gérable, qui est publié au marché.
+  \item \textbf{CACM 2.0} (révision 2024) et méthodologies en évolution~:
+        flow-based intraday, extension progressive à d'autres CCR.
+  \item \textbf{Adéquation}~: évaluation européenne (ERAA) et mécanismes de
+        capacité nationaux (p.\,ex.\ le marché de capacité français) — hors
+        cœur flow-based, mais liés à la sécurité d'approvisionnement.
+\end{itemize}
+
 \end{document}
