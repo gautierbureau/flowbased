@@ -263,19 +263,90 @@ Si le RAM calculé tombe en dessous, un ajustement le relève à ce plancher.
 % =====================================================================
 \section{Le CNEC : la brique qui définit les contraintes}
 
-\begin{defbox}{CNEC = CNE + Contingency}
-Un \textbf{CNEC} (\emph{Critical Network Element and Contingency}) associe :
+Le domaine flow-based n'est rien d'autre qu'une \emph{liste de contraintes de
+sécurité}. Chacune vient d'un \textbf{CNEC}. Avant d'écrire l'équation, il faut
+comprendre d'où sort cet objet — c'est le fondement de tout le reste.
+
+\paragraph{Le critère $N\!-\!1$, point de départ.} Un réseau de transport doit
+rester sûr non seulement en fonctionnement normal (tous les éléments en
+service, l'état « $N$ »), mais aussi \emph{après la perte de n'importe quel
+élément} (une ligne, un transformateur, un groupe) — c'est le \textbf{critère
+$N\!-\!1$}. La raison est physique~: quand un élément tombe, le courant qu'il
+portait ne disparaît pas, il se \emph{reporte} sur les éléments voisins, qui
+peuvent alors se retrouver en surcharge et déclencher à leur tour (effet de
+cascade, à l'origine des grands \emph{blackouts}). On ne peut donc pas se
+contenter de surveiller l'état normal~: il faut vérifier, pour chaque panne
+plausible, qu'aucun élément restant ne dépasse sa limite.
+
+\paragraph{Qu'est-ce qui rend un élément « critique »~?} Sur des milliers de
+branches, on ne retient que celles qui, d'une part, sont \emph{sensibles aux
+échanges} entre zones (un PTDF zone-à-zone notable — en région Core, un seuil
+de l'ordre de 5~\%) et, d'autre part, peuvent être \emph{contraignantes}. Ces
+branches surveillées sont les \textbf{CNE} (\emph{Critical Network Elements})~;
+en contexte transfrontalier on parle aussi de \textbf{XNEC}. Les scénarios de
+panne retenus sont les \textbf{contingences} (ou \emph{critical outages}).
+
+\begin{defbox}{CNEC $=$ un élément surveillé $+$ une contingence}
+Un \textbf{CNEC} (\emph{Critical Network Element and Contingency}) est un
+\emph{couple}~:
 \begin{itemize}[nosep,leftmargin=1.4em]
-  \item un \textbf{CNE} (\emph{Critical Network Element}) : ligne,
-        transformateur ou interconnexion fortement impacté par les échanges
-        et susceptible d'être congestionné ;
-  \item une \textbf{contingency} : un scénario de défaillance, typiquement
-        en $N\!-\!1$ (perte d'un élément du réseau).
+  \item un \textbf{CNE} : la branche dont on surveille le flux (ligne,
+        transformateur, interconnexion)~;
+  \item une \textbf{contingence} : l'état de réseau dans lequel on la
+        surveille — soit l'\textbf{état de base} (aucune panne, noté « $N$ »),
+        soit un état \textbf{$N\!-\!1$} (tel autre élément hors service).
 \end{itemize}
-Un CNEC représente donc « cet élément surveillé, dans la situation où tel
-autre élément est hors service ».
+Un CNEC se lit donc « \emph{cet élément-là, dans cette situation-là} ». Un même
+CNE donne \emph{plusieurs} CNEC — un par contingence pertinente, plus l'état de
+base. \emph{(Synonyme fréquent~: CBCO, \emph{Critical Branch~/ Critical
+Outage}.)}
 \end{defbox}
 
+\noindent Reprenons notre exemple à trois zones (\S\ref{sec:exemple})~: la ligne
+$L_{BC}$ est surveillée deux fois — à l'état de base (CNEC~$L_{BC}$) \emph{et}
+dans l'état où $L_{AC}$ est perdue (CNEC~$L_{BC}\,|\,L_{AC}$). Le schéma
+ci-dessous illustre pourquoi ce second cas existe~: en perdant $L_{AC}$, tout
+le flux qu'elle portait se reporte sur $L_{BC}$.
+
+\begin{center}
+\begin{tikzpicture}[scale=0.95,every node/.style={font=\footnotesize},
+    line/.style={coregrey,thick},mon/.style={coreblue,line width=1.6pt}]
+  % --- panneau gauche : état N ---
+  \begin{scope}
+    \node[circle,draw,fill=black!3,inner sep=1.5pt] (A) at (0,2) {$A$};
+    \node[circle,draw,fill=black!3,inner sep=1.5pt] (B) at (-1.3,0) {$B$};
+    \node[circle,draw,fill=black!3,inner sep=1.5pt] (C) at (1.3,0) {$C$};
+    \draw[line] (A)--(B); \draw[line] (A)--(C); \draw[mon] (B)--(C);
+    \node[coreblue] at (0,-0.4) {\scriptsize $L_{BC}$ surveillée};
+    \node at (0,-0.95) {état $N$ (réseau complet)};
+  \end{scope}
+  % --- flèche ---
+  \draw[axis] (2.1,1) -- node[above,font=\scriptsize]{perte de $L_{AC}$} (4.1,1);
+  % --- panneau droit : état N-1 ---
+  \begin{scope}[xshift=6.2cm]
+    \node[circle,draw,fill=black!3,inner sep=1.5pt] (A2) at (0,2) {$A$};
+    \node[circle,draw,fill=black!3,inner sep=1.5pt] (B2) at (-1.3,0) {$B$};
+    \node[circle,draw,fill=black!3,inner sep=1.5pt] (C2) at (1.3,0) {$C$};
+    \draw[line] (A2)--(B2);
+    \draw[red!70!black,dashed,thick] (A2)--(C2);
+    \draw[red!75!black,line width=2.4pt] (B2)--(C2);
+    % croix sur A-C
+    \node[red!70!black] at ($(A2)!0.5!(C2)$) {\scriptsize$\times$};
+    \node[red!75!black] at (0,-0.4) {\scriptsize flux reporté $\Rightarrow$ surcharge};
+    \node at (0,-0.95) {état $N\!-\!1$ (perte de $L_{AC}$)};
+  \end{scope}
+\end{tikzpicture}
+\end{center}
+
+\paragraph{La limite $\Fmax$~: PATL et TATL.} À chaque CNEC est attachée une
+limite de flux $\Fmax$, fixée par la thermique de l'élément. On distingue une
+limite \textbf{permanente} (\textbf{PATL}, tenable indéfiniment), utilisée à
+l'état de base, et une limite \textbf{temporaire} plus élevée (\textbf{TATL},
+tenable quelques minutes), tolérée \emph{juste après} une contingence — le
+temps que les GRT réagissent. C'est pourquoi, dans l'exemple, $L_{BC}$ admet
+360~MW à l'état de base mais 600~MW dans l'état post-incident.
+
+\paragraph{D'un CNEC à une contrainte.}
 Le flux sur le CNEC $c$ s'écrit, en fonction des positions nettes :
 \[
   F_c \;=\; \Fref_c \;+\; \sum_z \PTDF_{c,z}\,\bigl(\NP_z - \NP_z^{\mathrm{ref}}\bigr).
