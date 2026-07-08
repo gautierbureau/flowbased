@@ -29,7 +29,7 @@
   literate={é}{{\'e}}1 {è}{{\`e}}1 {à}{{\`a}}1 {ê}{{\^e}}1 {î}{{\^i}}1 {ô}{{\^o}}1 {ç}{{\c c}}1
 }
 
-\usetikzlibrary{arrows.meta,positioning,calc}
+\usetikzlibrary{arrows.meta,positioning,calc,fit,backgrounds,decorations.pathreplacing}
 \hypersetup{colorlinks=true,linkcolor=blue!55!black,urlcolor=blue!55!black}
 
 \definecolor{coreblue}{HTML}{1F5C99}
@@ -49,8 +49,21 @@
 \newcommand{\FRM}{\mathrm{FRM}}
 \newcommand{\GSK}{\mathrm{GSK}}
 
+% ---- styles pour les schémas et frises ----
+\tikzset{
+  proc/.style={draw=coreblue,fill=coreblue!8,rounded corners=2pt,align=center,
+    font=\footnotesize,inner sep=4pt,minimum height=9mm,text width=27mm},
+  procw/.style={proc,text width=38mm},
+  io/.style={draw=coregrey!85,fill=black!4,align=center,font=\footnotesize,
+    inner sep=4pt,minimum height=9mm,text width=27mm},
+  actor/.style={draw=coreblue!70!black,fill=coreblue!6,rounded corners=3pt,
+    align=flush left,font=\footnotesize,inner sep=5pt,text width=37mm,minimum height=20mm},
+  fl/.style={-{Stealth[length=2.4mm]},coregrey,thick},
+  axis/.style={-{Stealth[length=3mm]},coregrey,very thick},
+}
+
 \title{\vspace{-1.2cm}\textbf{Le calcul \textit{Flow-Based}}\\[2pt]
-\large PTDF, RAM, CNEC et sommets du domaine\\[6pt]
+\large PTDF, RAM, CNEC, domaine et couplage de marché\\[6pt]
 \normalsize\textit{avec un exemple complet à trois zones}}
 \author{}
 \date{}
@@ -105,6 +118,7 @@ logiquement :
 
 % =====================================================================
 \section{Les PTDF : les coefficients des contraintes}
+\label{sec:ptdf}
 
 Le \emph{Power Transfer Distribution Factor} mesure la \textbf{sensibilité}
 du flux physique sur un élément de réseau à une variation d'injection :
@@ -297,6 +311,72 @@ la région admissible un \textbf{polygone convexe} : ses \emph{côtés} sont
 les CNEC contraignants, ses \emph{sommets} les intersections de ces droites.
 
 % =====================================================================
+\section{Lecture géométrique : droites, hyperplans et sommets}
+\label{sec:geometrie}
+
+Chaque CNEC impose une contrainte
+$\vec{p}_c \cdot \Delta\mathrm{NP} \le \mathrm{RAM}_c$, où
+$\vec{p}_c=(\PTDF_{c,A},\PTDF_{c,B},\dots)$ est le \emph{vecteur des PTDF}
+du CNEC. L'égalité $\vec{p}_c\cdot\Delta\mathrm{NP}=\mathrm{RAM}_c$ définit
+un \textbf{hyperplan} (une \emph{droite} dans le plan projeté 2D).
+
+\begin{defbox}{L'image de la pièce et de ses murs}
+Le domaine est une \textbf{pièce} dont chaque \textbf{mur} est un CNEC.
+Rester dans la pièce = réseau sûr. Chaque mur dit : « ne pousse pas les
+échanges au-delà d'ici, sinon cet élément dépasse sa limite ».
+\end{defbox}
+
+Trois idées rendent la géométrie intuitive :
+\begin{itemize}[leftmargin=1.4em]
+  \item \textbf{La normale au mur, c'est le PTDF.} Le vecteur $\vec p_c$ est
+        perpendiculaire au mur et pointe vers l'extérieur : c'est la
+        direction de variation des positions nettes qui \emph{charge le plus
+        vite} l'élément $c$. Se déplacer \emph{le long} de $\vec p_c$ charge
+        le CNEC au maximum par MW échangé ; se déplacer \emph{parallèlement}
+        au mur ne change rien à son flux (on reste dans le noyau du PTDF).
+  \item \textbf{La distance au mur, c'est la marge.} La distance du point de
+        référence (l'origine) au mur, le long de la normale, vaut
+        $\mathrm{RAM}_c/\lVert\vec p_c\rVert$. Un CNEC à fort PTDF et faible
+        RAM est un mur \emph{proche} : il rogne fortement le domaine. Chaque
+        CNEC donne \emph{deux} murs parallèles (surcharge dans un sens ou
+        dans l'autre).
+  \item \textbf{Sommets et arêtes.} Une \textbf{arête} (un côté) : un seul
+        mur actif, un seul élément saturé, les autres ont de la marge. Un
+        \textbf{sommet} : deux murs se rencontrent, \emph{deux} éléments sont
+        simultanément à leur limite — pour aller plus loin dans cette
+        direction il faudrait une action corrective. Maximiser un échange
+        revient à pousser $\Delta\mathrm{NP}$ le plus loin possible dans une
+        direction : on s'arrête au \emph{premier mur touché}, le CNEC
+        limitant.
+\end{itemize}
+
+\begin{center}
+\begin{tikzpicture}[scale=1.15,every node/.style={font=\footnotesize}]
+  % zone sure (sous la droite x+y=3)
+  \fill[coreblue!10] (-0.7,-0.7) -- (3.7,-0.7) -- (-0.7,3.7) -- cycle;
+  % la droite (hyperplan du CNEC)
+  \draw[coreblue,very thick] (-0.6,3.6) -- (3.6,-0.6)
+        node[pos=0.06,above right,coreblue]{$\vec p_c\!\cdot\!\Delta\mathrm{NP}=\mathrm{RAM}_c$};
+  % origine et perpendiculaire = marge
+  \fill (0,0) circle (1.4pt) node[below left]{$O$ (réf.)};
+  \draw[dashed,coregrey] (0,0) -- (1.5,1.5);
+  \node[coregrey,rotate=45] at (0.72,0.95) {$\mathrm{RAM}_c/\lVert\vec p_c\rVert$};
+  % normale = PTDF
+  \draw[->,orange!80!black,very thick] (1.5,1.5) -- (2.45,2.45)
+        node[right,orange!80!black]{$\vec p_c$ (PTDF)};
+  % direction sans effet (le long du mur)
+  \draw[->,coreblue!70!black,thick] (1.5,1.5) -- (2.5,0.5)
+        node[below right,coreblue!70!black]{sans effet sur $c$};
+  % surcharge
+  \node[coregrey] at (2.9,3.0) {surcharge de $c$};
+  \node[coreblue!70!black] at (0.6,0.3) {domaine sûr};
+  % axes
+  \draw[->,coregrey] (-0.9,0)--(3.9,0) node[right]{$\Delta\mathrm{NP}_A$};
+  \draw[->,coregrey] (0,-0.9)--(0,3.9) node[above]{$\Delta\mathrm{NP}_B$};
+\end{tikzpicture}
+\end{center}
+
+% =====================================================================
 \section{Exemple complet à trois zones}
 
 \subsection{Réseau et hypothèses}
@@ -373,9 +453,7 @@ Enfin $\mathrm{PTDF} = B_d\,A\,X = A\,X$ (car $B_d=I$ ici) :
     L_{AC} & +\tfrac23 & +\tfrac13 & 0
   \end{array}
 \]
-On retrouve exactement les valeurs du tableau des CNEC ci-dessous. Ces
-mêmes valeurs seront reproduites numériquement par pypowsybl au
-\S\ref{sec:pypowsybl}.
+On retrouve exactement les valeurs du tableau des CNEC ci-dessous.
 
 \subsection{Table des CNEC}
 
@@ -498,155 +576,506 @@ $x + 2y \ge -(360+90-60) = -390$. Le domaine se retrouverait
 \end{rembox}
 
 % =====================================================================
-\section{Mise en \oe{}uvre avec \texttt{pypowsybl}}
-\label{sec:pypowsybl}
+\section{Du NTC/ATC au flow-based : capacité et couplage de marché}
+\label{sec:coupling}
 
-On reconstruit le triangle dans \texttt{pypowsybl} (moteur
-\emph{OpenLoadFlow}) et l'on calcule les PTDF par analyse de sensibilité DC.
-L'objectif est de montrer concrètement le \textbf{passage du nodal au
-zonal}.
+\subsection{NTC et ATC : la capacité « en boîte »}
 
-\subsection{Construction du réseau et slack}
+L'approche historique borne directement les échanges \emph{bilatéraux} entre
+deux zones :
+\begin{itemize}[nosep,leftmargin=1.4em]
+  \item \textbf{TTC} (\emph{Total Transfer Capacity}) : échange maximal entre
+        deux zones respectant la sécurité du réseau ;
+  \item \textbf{TRM} (\emph{Transmission Reliability Margin}) : marge couvrant
+        les incertitudes ;
+  \item \textbf{NTC} $= \mathrm{TTC}-\mathrm{TRM}$ ;
+  \item \textbf{ATC} (\emph{Available Transfer Capacity}) $=\mathrm{NTC}-$
+        capacités déjà allouées (AAC).
+\end{itemize}
+Le NTC fixe une limite \emph{par frontière}, \emph{a priori} et indépendamment
+des autres. Dans un réseau maillé, cela ignore les interdépendances (les flux
+de bouclage) : il faut prendre des marges prudentes, donc offrir \emph{moins}
+de capacité. Géométriquement, le domaine ATC est un \textbf{pavé} :
+$|\text{échange}_{ij}|\le \mathrm{ATC}_{ij}$, bornes indépendantes.
 
-Trois n\oe{}uds, trois lignes de réactance identique, une injection
-(générateur) par n\oe{}ud. Le point clé est de forcer un \textbf{slack
-unique} sur le n\oe{}ud C, via l'identifiant de son \emph{voltage level} :
+\subsection{Flow-based : la capacité « en polytope »}
 
-\begin{lstlisting}[style=py]
-import pypowsybl as pp
+Le flow-based ne borne pas les échanges bilatéraux mais les \emph{positions
+nettes}, via les CNEC/PTDF/RAM (tout ce document). Le domaine est un
+\textbf{polytope} qui capture les interdépendances du réseau maillé. À
+sécurité égale, il offre \emph{plus} de capacité au marché, de façon
+non-discriminatoire entre frontières, tout en respectant explicitement les
+contraintes $N\!-\!1$ (et le plancher minRAM de 70~\%). Le pavé ATC est en
+quelque sorte une approximation prudente inscrite dans le polytope FB.
 
-n = pp.network.create_empty("triangle-3-zones")
-n.create_substations(id=["S_A", "S_B", "S_C"])
-n.create_voltage_levels(id=["VL_A", "VL_B", "VL_C"],
-    substation_id=["S_A", "S_B", "S_C"],
-    topology_kind=["BUS_BREAKER"]*3, nominal_v=[400.0]*3)
-n.create_buses(id=["A", "B", "C"],
-    voltage_level_id=["VL_A", "VL_B", "VL_C"])
+\begin{center}
+\begin{tikzpicture}[scale=0.62,every node/.style={font=\footnotesize}]
+  \draw[->,coregrey] (-6.2,0)--(6.4,0) node[right]{$\Delta\mathrm{NP}_A$};
+  \draw[->,coregrey] (0,-6.2)--(0,6.4) node[above]{$\Delta\mathrm{NP}_B$};
+  % polytope FB (octogone du document)
+  \filldraw[fill=coreblue!12,draw=coreblue,very thick]
+    (5,-1)--(4,1)--(1,4)--(-1,5)--(-5,1)--(-4,-1)--(-1,-4)--(1,-5)--cycle;
+  \node[coreblue] at (3.1,3.1) {domaine FB};
+  % pave ATC inscrit
+  \draw[dashed,orange!80!black,very thick] (-3,-3) rectangle (3,3);
+  \node[orange!80!black] at (2.1,-3.5) {pavé ATC};
+\end{tikzpicture}
+\end{center}
 
-X = 10.0                                   # meme reactance sur les 3 lignes
-n.create_lines(id=["L_AB", "L_BC", "L_AC"],
-    voltage_level1_id=["VL_A", "VL_B", "VL_A"], bus1_id=["A", "B", "A"],
-    voltage_level2_id=["VL_B", "VL_C", "VL_C"], bus2_id=["B", "C", "C"],
-    r=[0.0]*3, x=[X, X, X],
-    g1=[0.0]*3, b1=[0.0]*3, g2=[0.0]*3, b2=[0.0]*3)
+\subsection{Le couplage de marché (SDAC / SIDC)}
 
-n.create_generators(id=["G_A", "G_B", "G_C"],       # 1 injection / noeud
-    voltage_level_id=["VL_A", "VL_B", "VL_C"], bus_id=["A", "B", "C"],
-    target_p=[100.0, 100.0, 0.0], min_p=[-1e3]*3, max_p=[1e3]*3,
-    target_q=[0.0]*3, voltage_regulator_on=[False]*3)
-n.create_loads(id=["LD_C"], voltage_level_id=["VL_C"], bus_id=["C"],
-    p0=[200.0], q0=[0.0])
+Le couplage repose sur des enchères \textbf{implicites} : l'algorithme alloue
+\emph{simultanément} l'énergie et la capacité transfrontalière, en maximisant
+le bien-être social sous la contrainte du domaine (FB ou ATC).
+\begin{itemize}[nosep,leftmargin=1.4em]
+  \item \textbf{SDAC} (\emph{Single Day-Ahead Coupling}) : marché day-ahead
+        pan-européen, algorithme \textbf{EUPHEMIA}, opéré par les NEMO et les
+        TSO dans le cadre du règlement CACM (2015/1222). Le domaine FB/ATC en
+        est l'entrée « réseau ». Le pas de temps est passé de l'heure au
+        quart d'heure (15-min MTU) fin 2025.
+  \item \textbf{SIDC} (\emph{Single Intraday Coupling}) : intraday en
+        \emph{continu} (plateforme XBID) complété d'enchères intraday (IDA)
+        utilisant aussi EUPHEMIA, au plus près du temps réel.
+\end{itemize}
 
-# Mode DC + slack UNIQUE force sur le noeud C (via son voltage level)
-lf = pp.loadflow.Parameters(dc=True, distributed_slack=False,
-    provider_parameters={"slackBusSelectionMode": "NAME",
-                         "slackBusesIds": "VL_C"})
-params = pp.sensitivity.Parameters(load_flow_parameters=lf)
-branches = ["L_AB", "L_BC", "L_AC"]
-\end{lstlisting}
+\subsection{Le processus coordonné de calcul de capacité}
 
-\subsection{PTDF nodal : variables = injections}
+Le domaine n'est pas calculé par un seul acteur : c'est un processus régional
+coordonné, par \textbf{région de calcul de capacité} (CCR). La région
+\textbf{Core} en couvre treize : AT, BE, HR, CZ, FR, DE, HU, LU, NL, PL, RO,
+SK, SI.
 
-Pour le PTDF \emph{nodal}, les variables de sensibilité sont les
-\textbf{injections} (les générateurs, un par n\oe{}ud) :
+La chaîne, de D-2 à D-1, enchaîne : fusion des modèles individuels (IGM /
+D2CF) en un \textbf{modèle de réseau commun} (CGM) ; calcul des PTDF nodaux
+puis \emph{zone-à-slack} via les GLSK ; définition des CNEC et des RAM ;
+optimisation des actions correctives non-coûteuses ; validation par les TSO ;
+puis publication du domaine (via JAO) pour le couplage vers D-1 10:00.
 
-\begin{lstlisting}[style=py]
-sa = pp.sensitivity.create_dc_analysis()
-sa.add_branch_flow_factor_matrix(branches_ids=branches,
-                                 variables_ids=["G_A", "G_B", "G_C"])
-res = sa.run(n, params, provider="OpenLoadFlow")
-print(res.get_sensitivity_matrix())      # PTDF nodal
-print(res.get_reference_matrix())         # flux de reference
-\end{lstlisting}
+Les acteurs : les \textbf{TSO} ; les \textbf{RCC} (\emph{Regional Coordination
+Centres}, p.\,ex.\ CORESO, TSCNET) dans leur rôle de \textbf{CCC}
+(\emph{Coordinated Capacity Calculator}) ; \textbf{JAO} (\emph{Joint Allocation
+Office}) pour la publication et certaines allocations ; les \textbf{NEMO} pour
+le marché.
 
-\noindent Résultat (lignes = injections, colonnes = branches) :
-\begin{center}\ttfamily\small
-\begin{tabular}{lrrr}
+\begin{rembox}{Repères de déploiement}
+Le flow-based day-ahead de la région \textbf{Core} est en service depuis le
+\textbf{8 juin 2022} (livraison du 9 juin 2022), dans le cadre du SDAC. La
+méthodologie flow-based \textbf{Nordic} a été déployée en \textbf{novembre
+2024}. D'autres régions restent en NTC/ATC coordonné.
+\end{rembox}
+
+\subsection{Horizons temporels et timings}
+
+L'allocation de capacité et le marché s'organisent en \textbf{quatre
+horizons} emboîtés, du plus lointain au temps réel.
+
+\begin{center}\footnotesize
+\renewcommand{\arraystretch}{1.25}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}p{1.95cm}p{3.75cm}p{3.85cm}p{4.35cm}@{}}
 \toprule
- & L\_AB & L\_BC & L\_AC \\
+\textbf{Horizon} & \textbf{Produit / allocation} & \textbf{Algorithme / plateforme} & \textbf{Timing clé} \\
 \midrule
-G\_A & $+0.3333$ & $+0.3333$ & $+0.6667$ \\
-G\_B & $-0.3333$ & $+0.6667$ & $+0.3333$ \\
-G\_C & $+0.0000$ & $+0.0000$ & $+0.0000$ \\
+\textbf{Forward} \newline (Y-1 → M-1) &
+LTTR : PTR (avec UIOSI) ou FTR options ; enchères \emph{explicites} (couverture) &
+JAO — \emph{Single Allocation Platform} ; règles HAR &
+Enchères annuelles puis mensuelles ; droits « use-it-or-sell-it » restitués au day-ahead \\
+\textbf{Day-ahead} &
+Énergie + capacité, enchères \emph{implicites} (couplage) &
+SDAC — \textbf{EUPHEMIA} (plateforme PMB) &
+Guichet $\sim$12:00 en D-1 ; domaine FB fourni $\sim$10:00 en D-1 ; résultats $\sim$13:00 ; pas de 15\,min depuis fin 2025 \\
+\textbf{Intraday} &
+Énergie + capacité ; \emph{continu} + enchères &
+SIDC — XBID (continu) + IDA (EUPHEMIA) &
+Continu jusqu'à $\sim$1\,h avant livraison ; IDA1 15:00 (D-1), IDA2 22:00 (D-1), IDA3 10:00 (D) \\
+\textbf{Équilibrage} \newline (temps réel) &
+Réserves FRR / RR ; activation d'énergie de réglage &
+PICASSO (aFRR), MARI (mFRR), TERRE (RR), IGCC (netting) &
+PICASSO : cycle $\sim$4\,s ; MARI : $\sim$15\,min ; IGCC : compensation continue \\
 \bottomrule
 \end{tabular}
 \end{center}
-\noindent Identique à la matrice $B_d A X$ calculée à la main, et
-$\PTDF_{\bullet,C}=0$ (C est le slack). Les flux de référence retournés sont
-$L_{AB}=0$, $L_{BC}=100$, $L_{AC}=100$~MW.
 
-\subsection{Passage au zonal : la GSK}
+\noindent Le fil directeur : plus on s'approche du temps réel, plus le pas
+de temps se raccourcit et plus l'allocation passe de l'\emph{enchère}
+(day-ahead) au \emph{continu} (intraday) puis à l'\emph{activation}
+optimisée (équilibrage).
 
-\textbf{C'est l'étape centrale.} On ne change pas de réseau : on regroupe
-les injections en \textbf{zones} au moyen de clés de répartition
-(\emph{shift keys}), puis on déclare ces zones comme variables. Trois
-appels suffisent :
+\subsection{Vision sur les algorithmes}
 
-\begin{lstlisting}[style=py]
-# 1) definir les zones a partir des injections + GSK (shift keys)
-zA = pp.sensitivity.create_zone_from_injections_and_shift_keys("A", ["G_A"], [1.0])
-zB = pp.sensitivity.create_zone_from_injections_and_shift_keys("B", ["G_B"], [1.0])
-zC = pp.sensitivity.create_zone_from_injections_and_shift_keys("C", ["G_C"], [1.0])
-
-sa2 = pp.sensitivity.create_dc_analysis()
-sa2.set_zones([zA, zB, zC])                       # 2) attacher les zones
-sa2.add_branch_flow_factor_matrix(branches_ids=branches,
-                                  variables_ids=["A", "B", "C"])  # 3) variables = ZONES
-res2 = sa2.run(n, params, provider="OpenLoadFlow")
-print(res2.get_sensitivity_matrix())              # PTDF zonal (zone -> hub)
-\end{lstlisting}
-
-\begin{defbox}{La seule différence nodal $\to$ zonal, côté code}
-\begin{itemize}[nosep,leftmargin=1.4em]
-  \item \textbf{Nodal} : \texttt{variables\_ids = ["G\_A","G\_B","G\_C"]}
-        (des \emph{injections}).
-  \item \textbf{Zonal} : on crée les zones avec
-        \texttt{create\_zone\_from\_injections\_and\_shift\_keys}, on les
-        attache avec \texttt{set\_zones(...)}, et
-        \texttt{variables\_ids = ["A","B","C"]} (des \emph{zones}).
+\begin{itemize}[leftmargin=1.4em]
+  \item \textbf{EUPHEMIA (SDAC, IDA)} : un programme d'optimisation
+        (MILP) qui \emph{maximise le bien-être social} (surplus
+        consommateurs $+$ producteurs $+$ rente de congestion) sous la
+        contrainte du domaine (polytope FB ou pavé ATC), en gérant les
+        ordres complexes (blocs, ordres à paliers) et en produisant un prix
+        de clearing par zone. Le domaine flow-based de tout ce document en
+        est l'entrée « réseau ».
+  \item \textbf{Appariement continu (SIDC)} : pas de clearing central ; un
+        \emph{carnet d'ordres} apparie instantanément offres et demandes
+        tant que la capacité transfrontalière (décrémentée en continu)
+        le permet. Il n'y a pas de prix unique — chaque transaction a le
+        sien.
+  \item \textbf{Équilibrage} : une optimisation d'\emph{activation} sur une
+        liste de mérite commune, sous la capacité transfrontalière
+        résiduelle. PICASSO recalcule le dispatch économique de l'aFRR
+        toutes les $\sim$4\,s ; l'IGCC \emph{nette} d'abord les déséquilibres
+        opposés pour éviter des activations contraires.
+  \item \textbf{RAO (CASTOR)} : l'optimisation des actions correctives —
+        détaillée au \S\ref{sec:rao}.
 \end{itemize}
-En interne, pypowsybl applique exactement
-$\mathrm{PTDF}^{\text{zonal}} = \mathrm{PTDF}^{\text{nodal}}\cdot\mathrm{GSK}$.
+
+% =====================================================================
+\section{Le paysage opérationnel : acteurs, horizons et coordination}
+\label{sec:paysage}
+
+Les sections précédentes ont décrit \emph{comment} on calcule un domaine
+flow-based. Cette section prend du recul et répond, pour quelqu'un qui
+découvre le sujet, à trois questions~: \textbf{qui} calcule ce domaine,
+\textbf{quand}, et \textbf{comment} tout cela s'articule avec le marché et la
+sécurité du réseau. C'est le contexte dans lequel les CNEC, PTDF et RAM de ce
+document prennent vie chaque jour à l'échelle européenne.
+
+\subsection{Les acteurs et qui fait quoi}
+\label{sec:acteurs}
+
+Aucun acteur ne fait tout seul. La sécurité du réseau maillé européen et
+l'allocation de sa capacité reposent sur une \emph{coopération} organisée par
+le règlement CACM (2015/1222) et le règlement d'exploitation SO~GL
+(2017/1485).
+
+\begin{center}
+\begin{tikzpicture}[node distance=6mm and 8mm]
+  \node[actor] (tso) {\textbf{GRT} \textit{(TSO)} — 13 en Core\\[2pt]
+    \scriptsize exploitent le réseau, fournissent leurs modèles
+    (IGM / D2CF), valident le domaine, activent en temps réel les actions
+    correctives};
+  \node[actor,right=of tso] (rcc) {\textbf{RCC} — Coreso, TSCNET\\[2pt]
+    \scriptsize centres de coordination régionaux~; dans leur rôle de
+    \textbf{CCC} (\emph{Coordinated Capacity Calculator}) ils calculent le
+    domaine \emph{et} coordonnent l'analyse de sécurité};
+  \node[actor,right=of rcc] (jao) {\textbf{JAO}\\[2pt]
+    \scriptsize \emph{Joint Allocation Office}~: publie le domaine flow-based
+    et alloue les droits de transport de long terme};
+  \node[actor,below=of tso] (nemo) {\textbf{NEMO}\\[2pt]
+    \scriptsize bourses désignées (EPEX~SPOT, Nord~Pool…)~: collectent les
+    ordres d'achat/vente et opèrent le couplage de marché};
+  \node[actor,below=of rcc] (entsoe) {\textbf{ENTSO-E}\\[2pt]
+    \scriptsize association des GRT~: méthodologies communes, format et
+    assemblage du modèle de réseau (CGM), coordination pan-européenne};
+  \node[actor,below=of jao] (acer) {\textbf{ACER \& régulateurs}\\[2pt]
+    \scriptsize approuvent les méthodologies, arbitrent, supervisent le
+    fonctionnement du marché};
+\end{tikzpicture}
+\end{center}
+
+\begin{rembox}{Le mot à retenir : \emph{coordonné}}
+Un \textbf{GRT} (gestionnaire de réseau de transport) reste responsable de
+\emph{son} réseau, mais il ne peut plus le piloter en vase clos~: un flux
+injecté en Allemagne charge des lignes en Belgique et aux Pays-Bas. Les
+\textbf{RCC} (\emph{Regional Coordination Centres}, qui ont remplacé les RSC
+avec le \emph{Clean Energy Package}) font le calcul \emph{à l'échelle de la
+région}, là où les phénomènes physiques se jouent réellement.
+\end{rembox}
+
+\subsection{Les horizons de temps}
+\label{sec:horizons}
+
+L'électricité s'échange sur plusieurs \textbf{horizons emboîtés}, du plus
+lointain (un an avant) au temps réel. Plus on s'approche de la livraison, plus
+le pas de temps se raccourcit et plus l'information sur le réseau et la
+consommation est précise. La frise ci-dessous situe les quatre grands
+horizons~; le tableau détaillé figure au \S\ref{sec:coupling}.
+
+\begin{center}
+\begin{tikzpicture}[x=1.02cm,y=1cm,font=\scriptsize]
+  \draw[axis] (-0.2,0) -- (13.8,0);
+  \foreach \x/\lab in {0/{Y-1},2.5/{M-1},6/{D-2},8.5/{D-1},11/{D},13.4/{réel}}
+     {\draw[coregrey] (\x,0.12)--(\x,-0.12); \node[below,font=\scriptsize] at (\x,-0.2){\lab};}
+  % bandes horizons
+  \fill[coreblue!12,rounded corners=2pt] (0,0.4) rectangle (5.7,1.15);
+    \node[align=center] at (2.85,0.775){\textbf{Forward} \; (Y-1 → M-1)\\ droits de long terme (JAO), enchères \emph{explicites}};
+  \fill[coreblue!20,rounded corners=2pt] (7.3,1.35) rectangle (9.7,2.1);
+    \node[align=center] at (8.5,1.725){\textbf{Day-ahead}\\ SDAC / EUPHEMIA\\ enchère \emph{implicite}};
+  \fill[coreblue!28,rounded corners=2pt] (8.6,0.4) rectangle (11.5,1.15);
+    \node[align=center] at (10.05,0.775){\textbf{Intraday}\\ SIDC (XBID continu) + IDA};
+  \fill[coreblue!38,rounded corners=2pt] (11.7,1.35) rectangle (13.7,2.1);
+    \node[align=center] at (12.7,1.725){\textbf{Équilibrage}\\ PICASSO, MARI…};
+\end{tikzpicture}
+\end{center}
+
+\noindent\textbf{Ce que fait chaque acteur, horizon par horizon.}
+\begin{itemize}[nosep,leftmargin=1.4em]
+  \item \textbf{Forward} — les GRT déterminent la capacité de long terme~;
+        \textbf{JAO} met aux enchères des droits de couverture (PTR/FTR).
+  \item \textbf{Day-ahead} — les GRT/RCC calculent et publient le
+        \emph{domaine}~; les \textbf{NEMO} recueillent les ordres et lancent
+        le couplage (EUPHEMIA) qui fixe prix et échanges pour le lendemain.
+  \item \textbf{Intraday} — le domaine est \emph{réactualisé}~; le marché
+        s'ajuste en continu (SIDC) et par enchères (IDA) au fur et à mesure
+        que les prévisions se précisent.
+  \item \textbf{Temps réel} — les GRT, aidés des RCC, maintiennent
+        l'équilibre et la sécurité (réserves, actions correctives).
+\end{itemize}
+
+\subsection{Le calcul de capacité coordonné, pas à pas}
+\label{sec:cccpasapas}
+
+Le domaine flow-based publié chaque jour est le produit d'une chaîne
+industrielle qui va des modèles de chaque GRT jusqu'à la bourse. Voici ses
+maillons (le détail « métier » est au \S\ref{sec:coupling})~:
+
+\begin{center}
+\begin{tikzpicture}[node distance=3.6mm]
+ \node[procw] (a) {\textbf{IGM / D2CF} de chaque GRT\\ modèles individuels, prévision à J-2};
+ \node[procw,below=of a] (b) {Fusion → \textbf{CGM}\\ modèle de réseau \emph{commun}};
+ \node[procw,below=of b] (c) {\textbf{PTDF} nodaux → zonaux\\ (via les GLSK)};
+ \node[procw,below=of c] (d) {\textbf{CNEC} + \textbf{RAM}\\ $\RAM=\Fmax-\Fref-\FRM$, plancher minRAM 70\%};
+ \node[procw,below=of d] (e) {Actions correctives non-coûteuses\\ (pré-optimisation / RAO)};
+ \node[procw,below=of e] (f) {\textbf{Validation} par les GRT};
+ \node[procw,below=of f] (g) {\textbf{Publication} du domaine (JAO)\\ → couplage SDAC en D-1};
+ \foreach \i/\j in {a/b,b/c,c/d,d/e,e/f,f/g}{\draw[fl] (\i)--(\j);}
+\end{tikzpicture}
+\end{center}
+
+On reconnaît, aux étapes 3 et 4, exactement les objets construits dans ce
+document~: les $\PTDF$ (§\ref{sec:ptdf} et suivantes), passés du nodal au zonal
+par la $\GSK$/GLSK, puis les RAM. La nouveauté ici est \emph{organisationnelle}~:
+tout est fait sur un modèle \emph{commun} à treize pays, et validé
+collectivement avant d'être offert au marché.
+
+\subsection{La \emph{net position forecast} (D2CF) et le flux de référence}
+\label{sec:npf}
+
+Pour calculer une marge (RAM), il faut connaître le flux \emph{déjà présent}
+sur chaque CNEC \emph{avant} que le marché ne décide quoi que ce soit~: c'est
+le \textbf{flux de référence} $\Fref$. Or ce flux dépend de la façon dont
+chaque zone produit et consomme — donc de sa \emph{position nette}.
+
+\begin{defbox}{Position nette \textit{(net position)}}
+La position nette d'une zone $z$ est le solde algébrique de ses échanges avec
+l'extérieur~:
+\[
+  \NP_z \;=\; \underbrace{\textstyle\sum(\text{exports})-\sum(\text{imports})}_{\text{aux frontières}}
+        \;=\; \underbrace{G_z - L_z}_{\text{production}-\text{consommation}} .
+\]
+Une zone \emph{exportatrice} a $\NP_z>0$, une zone \emph{importatrice}
+$\NP_z<0$, et, sur le périmètre couplé, $\sum_z \NP_z = 0$. Ce sont ces
+$\NP_z$ que le domaine flow-based borne (via $\sum_z \PTDF_{c,z}\,\Delta\NP_z
+\le \RAM_c$).
 \end{defbox}
 
-Ici chaque zone ne contient qu'un n\oe{}ud, donc la GSK est la matrice
-identité et le PTDF zonal \textbf{coïncide} avec le nodal. Dans un cas
-réaliste, une zone couvre plusieurs n\oe{}uds : les \emph{shift keys}
-répartissent alors la variation de position nette (p.\,ex.\ au prorata de
-la production installée), et le PTDF zonal est la moyenne pondérée des PTDF
-nodaux. Le schéma d'appel pour une zone à plusieurs centrales est
-simplement :
+\noindent\textbf{Pourquoi une \emph{prévision}~?} Le domaine se calcule deux
+jours avant la livraison~; à cet instant, personne ne connaît encore le
+programme réel de production. Chaque GRT fournit donc un fichier
+\textbf{D2CF} (\emph{Day-2 Congestion Forecast}) — sa \emph{meilleure
+prévision} du parc, de la consommation et des échanges. Assemblés, ces
+fichiers donnent la \textbf{net position forecast} par zone, dont on déduit le
+flux de référence $\Fref$, puis la RAM.
 
-\begin{lstlisting}[style=py]
-# zone A repartie sur 2 centrales (60 % / 40 %) -- shift keys de somme 1
-zA = pp.sensitivity.create_zone_from_injections_and_shift_keys(
-        "A", ["G_A1", "G_A2"], [0.6, 0.4])
-\end{lstlisting}
+\begin{center}
+\begin{tikzpicture}[node distance=10mm]
+ \node[procw] (a){\textbf{D2CF} — chaque GRT\\ prévision J-2 : $\NP_z$ par zone};
+ \node[procw,right=of a] (b){\textbf{CGM} de référence (D-2)\\ flux de référence $\Fref$ par CNEC};
+ \node[procw,right=of b] (c){\textbf{RAM}\\ $\Fmax-\Fref-\FRM$};
+ \draw[fl](a)--(b); \draw[fl](b)--(c);
+\end{tikzpicture}
+\end{center}
 
-\subsection{PTDF zone-à-zone et CNEC}
+\begin{rembox}{L'idée-clé}
+La \emph{net position forecast} n'est pas le résultat du marché~: c'est une
+\emph{hypothèse de départ} nécessaire pour \emph{estimer} l'état du réseau et
+donc les marges. Toute imprécision de cette prévision est en partie couverte
+par la marge de fiabilité $\FRM$ et par le plancher minRAM~; le reste sera
+corrigé aux horizons plus proches (intraday) et en temps réel.
+\end{rembox}
 
-Le PTDF \emph{zone-à-zone} s'obtient par différence de lignes ; le
-\textbf{CNEC} (PTDF post-contingence) via \texttt{add\_single\_element\_contingency} :
+\subsection{De D-2 au temps réel : la frise du processus}
+\label{sec:frise}
 
-\begin{lstlisting}[style=py]
-# zone-a-zone : echange bilateral A -> B
-z = res2.get_sensitivity_matrix()
-print(z.loc["A"] - z.loc["B"])            # -> L_AB:+0.667  L_BC:-0.333  L_AC:+0.333
+En pratique, une journée de livraison $D$ se prépare dès $D\!-\!2$ et se
+prolonge jusqu'à sa fin. La frise ci-dessous montre les \emph{guichets}
+successifs et, en couleur, l'acteur principal de chaque étape (heures
+approximatives, CET).
 
-# CNEC : PTDF de L_BC apres perte de L_AC (reseau radial)
-sa3 = pp.sensitivity.create_dc_analysis()
-sa3.add_single_element_contingency("L_AC")
-sa3.add_branch_flow_factor_matrix(branches_ids=["L_BC"],
-                                  variables_ids=["G_A", "G_B", "G_C"])
-res3 = sa3.run(n, params, provider="OpenLoadFlow")
-print(res3.get_sensitivity_matrix(contingency_id="L_AC"))  # -> A:+1  B:+1  C:0
-\end{lstlisting}
+\begin{center}
+\begin{tikzpicture}[x=1.02cm,y=1cm,font=\scriptsize]
+  \draw[axis] (-0.3,0) -- (14.2,0);
+  \foreach \x/\lab/\who in {%
+      0/{D-2}/{GRT},
+      3/{D-1 \\ 08:00}/{RCC},
+      5.4/{D-1 \\ 10:00}/{JAO},
+      7.6/{D-1 \\ 12:00}/{NEMO},
+      9.2/{D-1 \\ 13:00}/{NEMO},
+      11.4/{D-1→D \\ intraday}/{NEMO/GRT},
+      13.7/{D \\ réel}/{GRT/RCC}}
+     {\draw[coregrey] (\x,0.12)--(\x,-0.12);
+      \node[below,align=center,font=\scriptsize] at (\x,-0.2){\lab};
+      \node[above,align=center,font=\scriptsize,text=coreblue!75!black] at (\x,0.16){\textbf{\who}};}
+\end{tikzpicture}
+\end{center}
 
-\noindent Le CNEC renvoie $\PTDF_A=\PTDF_B=+1$, $\PTDF_C=0$ : c'est
-exactement le \textbf{CNEC~4} ($L_{BC}\,|\,L_{AC}$) du tableau du \S6.3. La
-boucle est ainsi fermée : théorie matricielle, calcul à la main et
-\texttt{pypowsybl} donnent les mêmes coefficients, ceux qui définissent les
-faces du domaine flow-based.
+\begin{itemize}[nosep,leftmargin=1.4em]
+  \item \textbf{D-2} — chaque \textbf{GRT} produit son D2CF~; les modèles sont
+        fusionnés en CGM.
+  \item \textbf{D-1 ~08:00} — le \textbf{RCC} (comme CCC) calcule PTDF, RAM,
+        optimise les actions correctives et prépare le domaine.
+  \item \textbf{D-1 ~10:00} — après validation des GRT, le domaine est
+        \textbf{publié} (JAO), prêt pour le marché.
+  \item \textbf{D-1 12:00} — \emph{gate closure} du day-ahead~: les
+        \textbf{NEMO} ferment la collecte des ordres.
+  \item \textbf{D-1 ~13:00} — EUPHEMIA rend les prix et positions par zone.
+  \item \textbf{D-1 → D} — l'\textbf{intraday} (SIDC continu + enchères IDA)
+        ajuste les programmes~; le domaine est réactualisé.
+  \item \textbf{D, temps réel} — GRT et RCC équilibrent le système et
+        déclenchent les actions correctives sécurisant le réseau.
+\end{itemize}
+
+\subsection{Le couplage de marché en pratique}
+\label{sec:couplagepratique}
+
+Le \emph{couplage de marché} règle un problème qui, avant, se traitait en deux
+temps (d'abord acheter de la capacité de transport, puis vendre de l'énergie).
+Ici, une \textbf{enchère implicite} alloue \emph{simultanément} l'énergie et la
+capacité transfrontalière~: l'algorithme place l'énergie là où elle a le plus
+de valeur, dans la limite de ce que le réseau permet — c'est-à-dire dans le
+\emph{domaine} de ce document.
+
+\begin{center}
+\begin{tikzpicture}[>={Stealth[length=2.4mm]}]
+ \node[io,text width=32mm] (ord){Ordres d'achat / vente par zone\\ \emph{(NEMO)}};
+ \node[io,text width=32mm,below=8mm of ord] (dom){Domaine flow-based\\ \emph{(RCC/CCC → JAO)}};
+ \node[proc,text width=32mm,minimum height=16mm] (eu) at ($(ord)!0.5!(dom)+(5.2,0)$)
+   {\textbf{EUPHEMIA}\\ programme (MILP) qui \emph{maximise le bien-être social} sous la contrainte du domaine};
+ \node[io,text width=32mm] (out) at ($(eu)+(5.4,0)$)
+   {Prix par zone, positions nettes, flux, rente de congestion};
+ \draw[fl](ord.east)--(eu.west);
+ \draw[fl](dom.east)--(eu.west);
+ \draw[fl](eu.east)--(out.west);
+\end{tikzpicture}
+\end{center}
+
+\noindent\textbf{Les algorithmes, en un coup d'\oe{}il} (détails au
+\S\ref{sec:coupling})~:
+\begin{itemize}[nosep,leftmargin=1.4em]
+  \item \textbf{Day-ahead — EUPHEMIA (SDAC)}~: une optimisation centralisée
+        qui produit \emph{un} prix de clearing par zone. Le domaine
+        flow-based en est l'entrée « réseau ».
+  \item \textbf{Intraday — SIDC}~: pas de prix unique~; un \emph{carnet
+        d'ordres} européen (XBID) apparie en continu offres et demandes tant
+        que la capacité résiduelle le permet, complété d'enchères IDA
+        (elles-mêmes fondées sur EUPHEMIA).
+  \item \textbf{Équilibrage}~: des plateformes communes (PICASSO pour l'aFRR,
+        MARI pour le mFRR, IGCC pour le \emph{netting}) activent, au meilleur
+        coût, l'énergie de réglage sous la capacité transfrontalière restante.
+\end{itemize}
+
+\subsection{L'analyse de sécurité coordonnée (CSA) dans la région Core}
+\label{sec:csa}
+
+Calculer le domaine et coupler le marché ne suffit pas à garantir la
+sécurité~: entre le résultat du marché (D-1) et la livraison (temps réel), le
+réseau doit rester sûr en régime normal \emph{et} après la perte de n'importe
+quel élément (critère $N\!-\!1$). C'est l'objet de l'\textbf{analyse de
+sécurité coordonnée} (CSA, \emph{Coordinated Security Analysis}), une des
+missions confiées aux RCC par le règlement SO~GL.
+
+\begin{center}
+\begin{tikzpicture}[node distance=3.6mm]
+ \node[procw] (a){\textbf{CGM} D-1 puis intraday\\ (modèle commun réactualisé)};
+ \node[procw,below=of a] (b){Analyse de sécurité $N\!-\!1$ \emph{coordonnée} (RCC)};
+ \node[procw,below=of b] (c){Congestions détectées sur les éléments transfrontaliers (\textbf{XNEC})};
+ \node[procw,below=of c] (d){Optimisation d'actions correctives \emph{coordonnées}\\ redispatch, countertrading, PST, topologie};
+ \node[procw,below=of d] (e){\textbf{Partage des coûts} entre GRT\\ (méthodologie Core CoRAO)};
+ \node[procw,below=of e] (f){Mise en \oe{}uvre par les GRT en temps réel};
+ \foreach \i/\j in {a/b,b/c,c/d,d/e,e/f}{\draw[fl] (\i)--(\j);}
+\end{tikzpicture}
+\end{center}
+
+\noindent\textbf{Ce qui distingue la CSA du calcul de capacité}~: le calcul de
+capacité prépare le domaine \emph{avant} le marché~; la CSA vérifie et corrige
+la sécurité \emph{après} le marché, à mesure que l'échéance approche et que le
+CGM est réactualisé (D-1 puis intraday). Les deux processus partagent les
+mêmes briques — CGM, PTDF, CNEC/XNEC — mais poursuivent des buts
+complémentaires.
+
+\begin{itemize}[nosep,leftmargin=1.4em]
+  \item \textbf{Actions correctives} — les mêmes leviers qu'au
+        \S\ref{sec:rao}~: \emph{redispatching} (déplacer de la production),
+        \emph{countertrading} (échanges de contre-sens), réglage des
+        \textbf{PST} (transformateurs déphaseurs), man\oe{}uvres
+        \emph{topologiques}.
+  \item \textbf{Partage des coûts} — une action décidée pour soulager une
+        congestion « commune » profite à plusieurs GRT~; son coût est réparti
+        selon une méthodologie régionale (en Core, le \emph{Core CoRAO} —
+        \emph{Coordinated Redispatching and Countertrading}).
+  \item \textbf{Préventif vs curatif} — certaines actions sont armées
+        \emph{par précaution} (préventif), d'autres ne seront déclenchées
+        \emph{que si} l'incident survient (curatif).
+\end{itemize}
+
+Le c\oe{}ur algorithmique de cette optimisation — choisir le meilleur jeu
+d'actions correctives au moindre coût — est précisément le \textbf{RAO},
+détaillé maintenant.
+
+% =====================================================================
+\section{Processus coordonné et RAO (OpenRAO)}
+\label{sec:rao}
+
+\subsection{La coordination au-delà du calcul de capacité}
+
+Le calcul du domaine (\S\ref{sec:coupling}) n'est qu'une partie du travail
+coordonné. Pour maintenir la sécurité de manière efficace, les TSO
+coordonnent aussi, via les RCC, l'\textbf{analyse de sécurité} et
+l'\textbf{usage des actions correctives} — redispatching, countertrading,
+réglage des PST, actions topologiques — avec un \textbf{partage des coûts}
+entre TSO. C'est le rôle du RAO (\emph{Remedial Action Optimizer}) : choisir
+le jeu d'actions correctives qui sécurise le réseau au meilleur coût.
+
+\subsection{L'algorithme CASTOR (OpenRAO)}
+
+\textbf{OpenRAO} (LF Energy / PowSyBl) implémente le RAO de référence,
+\textbf{CASTOR}. Ses entrées : le modèle de réseau commun (CGM), un
+\textbf{CRAC} (les CNEC, les contingences et les actions correctives
+disponibles) et des paramètres.
+
+\paragraph{Fonction objectif.} Le plus souvent \textsc{max-min-margin} :
+on maximise la \emph{marge minimale} sur l'ensemble des CNEC. Une variante
+\emph{relative} rapporte cette marge à la somme des valeurs absolues des
+PTDF,
+\[
+  \textstyle\sum_z |\PTDF_{c,z}| ,
+\]
+tandis qu'une variante \textsc{min-cost} minimise le coût des actions
+augmenté de la violation résiduelle.
+
+\paragraph{Deux niveaux imbriqués.}
+\begin{itemize}[nosep,leftmargin=1.4em]
+  \item un \textbf{arbre de recherche} combinatoire sur les actions
+        \emph{discrètes} (topologie, ouverture/fermeture, consignes),
+        exploré par profondeur bornée ;
+  \item à chaque feuille, une \textbf{optimisation linéaire} (LP/MIP, via
+        OR-Tools) des actions \emph{continues} (PST, HVDC) : les prises de
+        PST sont approximées puis re-vérifiées par une analyse de sécurité
+        pour lever l'approximation « continu $\to$ entier ».
+\end{itemize}
+
+\paragraph{Périmètres temporels.} Le RAO traite séquentiellement les
+instants \emph{préventif}, \emph{sur incident} (outage), \emph{automate}
+(auto) et \emph{curatif}, en distinguant limites permanentes (PATL) et
+temporaires (TATL) ; un \emph{second préventif} optionnel corrige les
+contraintes curatives que le préventif n'avait pas « vues ».
+
+\begin{rembox}{Illustration concrète (OpenRAO)}
+Sur un réseau UCTE à 12 n\oe{}uds doté d'un transformateur déphaseur (PST)
+belge, avec un CNEC limitant à $\pm4000$~MW, un RAO en mode
+\textsc{max-min-margin} retient la seule action corrective préventive
+disponible (le PST), la place au \textbf{tap $-16$}, et fait passer la marge
+minimale de \textbf{2666{,}7 à 2719{,}0~MW}. Un load-flow indépendant
+reproduit exactement ce résultat : le déphaseur reporte du flux de l'élément
+le plus chargé vers ceux qui avaient de la marge, relevant le \emph{minimum}
+global.
+\end{rembox}
 
 % =====================================================================
 \section{Synthèse}
