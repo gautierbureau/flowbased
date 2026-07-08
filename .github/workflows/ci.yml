@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  examples:
+    name: Run pypowsybl / OpenRAO examples
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: PTDF (analytic vs pypowsybl)
+        run: python src/ptdf_pypowsybl.py
+
+      - name: Flow-based theory chain (+ domain plot)
+        run: python src/theorie_flowbased_pypowsybl.py
+
+      - name: OpenRAO remedial actions
+        run: python src/openrao_remedial_actions.py
+
+      - name: Upload generated figure
+        uses: actions/upload-artifact@v4
+        with:
+          name: domain-figure
+          path: figures/domaine_flowbased.png
+
+  pdfs:
+    name: Build LaTeX documents
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compile flowbased_theorie.pdf
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: flowbased_theorie.tex
+          working_directory: docs
+
+      - name: Compile flowbased.pdf
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: flowbased.tex
+          working_directory: docs
+
+      - name: Upload PDFs
+        uses: actions/upload-artifact@v4
+        with:
+          name: documents
+          path: docs/*.pdf
