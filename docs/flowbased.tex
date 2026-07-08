@@ -152,6 +152,21 @@ $2/3$ sur la liaison directe A--C, et $1/3$ sur le chemin A--B--C. Ce sont
 ces fractions qui constitueront les PTDF de notre exemple.
 \end{rembox}
 
+\begin{center}
+\begin{tikzpicture}[every node/.style={font=\footnotesize},
+    thn/.style={coreblue!70,line width=1.1pt},fat/.style={coreblue,line width=2.4pt}]
+  \node[circle,draw,fill=black!3,inner sep=1.5pt] (A) at (0,0){$A$};
+  \node[circle,draw,fill=black!3,inner sep=1.5pt] (B) at (2,1.3){$B$};
+  \node[circle,draw,fill=black!3,inner sep=1.5pt] (C) at (4,0){$C$};
+  \draw[thn] (A)--(B) node[midway,above left=-1pt]{$\tfrac13$};
+  \draw[thn] (B)--(C) node[midway,above right=-1pt]{$\tfrac13$};
+  \draw[fat] (A)--(C) node[midway,below]{$\tfrac23$};
+  \draw[-{Stealth[length=2mm]},coregrey,thick] (-1.2,0)--(A) node[midway,above]{$+1$};
+  \draw[-{Stealth[length=2mm]},coregrey,thick] (C)--(5.2,0) node[midway,above]{$-1$};
+  \node[align=center,font=\scriptsize] at (2,-0.95){réactances égales $\Rightarrow$ le transfert $A\!\to\!C$ se partage\\ $2/3$ en direct et $1/3$ par $B$ — voilà les PTDF};
+\end{tikzpicture}
+\end{center}
+
 \subsection{Formulation matricielle (load-flow DC)}
 \label{sec:matrice}
 
@@ -211,8 +226,39 @@ produit matriciel :
 \[
   \boxed{\;\mathrm{PTDF}^{\text{zonal}} \;=\; \mathrm{PTDF}^{\text{nodal}}\cdot \mathrm{GSK}\;}\qquad (m\times Z).
 \]
-Chaque colonne du résultat est la \emph{moyenne pondérée par la GSK} des
-colonnes nodales de la zone. Deux variantes usuelles :
+
+\paragraph{Ce que représente vraiment la GSK.} Une zone de marché n'est pas
+un point unique~: c'est un ensemble de n\oe{}uds (centrales et charges).
+Quand le marché fait varier la position nette d'une zone de $+1$~MW, encore
+faut-il dire \emph{où}, physiquement, ce mégawatt est produit — quelles
+centrales montent. La \textbf{GSK} est exactement cette hypothèse de
+répartition (au prorata de la production du moment, de la puissance installée,
+de la marge disponible\ldots). Ce n'est donc pas une donnée physique mais un
+\emph{choix de modélisation}~: une GSK différente donne des PTDF zonaux — et
+donc un domaine — différents.
+
+\begin{center}
+\begin{tikzpicture}[every node/.style={font=\footnotesize}]
+  \draw[-{Stealth[length=2.4mm]},coregrey,thick] (-2.4,0)--(-0.85,0)
+     node[midway,above,font=\scriptsize]{$+1$ MW net};
+  \node[draw=coreblue,rounded corners=3pt,fill=coreblue!5,
+        minimum width=3.4cm,minimum height=2.3cm] (Z) at (1,0){};
+  \node[coreblue,anchor=north west,font=\scriptsize,inner sep=2pt] at (Z.north west){zone $z$};
+  \node[circle,draw,fill=black!4,inner sep=1.2pt] (g1) at (0.35,0.5){};
+  \node[circle,draw,fill=black!4,inner sep=1.2pt] (g2) at (1.7,0.65){};
+  \node[circle,draw,fill=black!4,inner sep=1.2pt] (g3) at (1.05,-0.55){};
+  \node[font=\scriptsize] at (0.72,0.5){$0{,}5$};
+  \node[font=\scriptsize] at (2.07,0.65){$0{,}3$};
+  \node[font=\scriptsize] at (1.42,-0.55){$0{,}2$};
+  \draw[-{Stealth[length=1.6mm]},coreblue!70] (-0.85,0)--(g1);
+  \draw[-{Stealth[length=1.6mm]},coreblue!70] (-0.85,0)--(g2);
+  \draw[-{Stealth[length=1.6mm]},coreblue!70] (-0.85,0)--(g3);
+  \node[align=center,font=\scriptsize] at (1,-1.55){la GSK répartit le $+1$~MW sur les n\oe{}uds (ici $0{,}5/0{,}3/0{,}2$)};
+\end{tikzpicture}
+\end{center}
+
+\noindent Chaque colonne du résultat est la \emph{moyenne pondérée par la
+GSK} des colonnes nodales de la zone. Deux variantes usuelles :
 \begin{itemize}[nosep,leftmargin=1.4em]
   \item \textbf{zone-à-hub} : PTDF mesuré par rapport au slack/hub
         (ce que l'on vient d'écrire) ;
@@ -249,6 +295,30 @@ CNEC pour absorber les échanges commerciaux :
         couvrant les incertitudes entre le calcul \emph{day-ahead} et le
         temps réel (déterminée statistiquement).
 \end{itemize}
+
+\noindent Autrement dit, la limite thermique $\Fmax$ se partage en trois~: ce
+qui est \emph{déjà utilisé} ($\Fref$), ce qu'on \emph{réserve} par prudence
+($\FRM$), et ce qui \emph{reste pour le marché} ($\RAM$).
+
+\begin{center}
+\begin{tikzpicture}[x=1cm,y=1cm,font=\footnotesize]
+  \def\F{12}
+  \fill[black!12]    (0,0)    rectangle (2,0.7);
+  \fill[orange!30]   (2,0)    rectangle (3,0.7);
+  \fill[coreblue!22] (3,0)    rectangle (\F,0.7);
+  \draw[coregrey,thick] (0,0) rectangle (\F,0.7);
+  \draw[coregrey] (2,0)--(2,0.7); \draw[coregrey] (3,0)--(3,0.7);
+  \node at (1,0.35){$\Fref$};
+  \node at (2.5,0.35){$\FRM$};
+  \node[coreblue!60!black] at (7.5,0.35){$\RAM$ \; (offert au marché)};
+  % accolade Fmax
+  \draw[decorate,decoration={brace,amplitude=5pt}] (0,0.9)--(\F,0.9);
+  \node[above,font=\scriptsize] at (6,1.05){$\Fmax$ \;(limite thermique)};
+  % plancher minRAM : RAM >= 0,7 Fmax  <=>  bord gauche du RAM <= 0,3 Fmax
+  \draw[red!70!black,dashed] (3.6,-0.65)--(3.6,0.78);
+  \node[below,font=\scriptsize,red!70!black,align=center] at (3.6,-0.62){plancher minRAM\\ le bleu doit partir \emph{au plus} d'ici};
+\end{tikzpicture}
+\end{center}
 
 \begin{rembox}{Règle du \textit{minRAM} (70 \%)}
 Le règlement européen 2019/943 (\emph{Clean Energy Package}, art.~16) impose
