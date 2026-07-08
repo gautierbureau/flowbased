@@ -35,17 +35,11 @@ jobs:
           name: domain-figure
           path: figures/domaine_flowbased.png
 
-  pdfs:
-    name: Build LaTeX documents
+  pdf:
+    name: Build LaTeX document
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Compile flowbased_theorie.pdf
-        uses: xu-cheng/latex-action@v3
-        with:
-          root_file: flowbased_theorie.tex
-          working_directory: docs
 
       - name: Compile flowbased.pdf
         uses: xu-cheng/latex-action@v3
@@ -53,8 +47,8 @@ jobs:
           root_file: flowbased.tex
           working_directory: docs
 
-      - name: Upload PDFs
+      - name: Upload PDF
         uses: actions/upload-artifact@v4
         with:
-          name: documents
-          path: docs/*.pdf
+          name: document
+          path: docs/flowbased.pdf

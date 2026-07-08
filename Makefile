@@ -5,7 +5,7 @@ help:
 	@echo "make ptdf        - run PTDF example (analytic vs pypowsybl)"
 	@echo "make theory      - run full flow-based theory example (+ figure)"
 	@echo "make rao         - run OpenRAO remedial-action example"
-	@echo "make pdfs        - build the LaTeX documents (needs TeX Live)"
+	@echo "make pdfs        - build the LaTeX document (needs TeX Live)"
 	@echo "make fetch-data  - (re)download the OpenRAO example resources"
 	@echo "make clean       - remove LaTeX build artifacts"
 
@@ -22,8 +22,7 @@ rao:
 	python src/openrao_remedial_actions.py
 
 pdfs:
-	cd docs && pdflatex -interaction=nonstopmode flowbased_theorie.tex && pdflatex -interaction=nonstopmode flowbased_theorie.tex
-	cd docs && pdflatex -interaction=nonstopmode flowbased.tex && pdflatex -interaction=nonstopmode flowbased.tex
+	cd docs && pdflatex -interaction=nonstopmode flowbased.tex && pdflatex -interaction=nonstopmode flowbased.tex && pdflatex -interaction=nonstopmode flowbased.tex
 
 fetch-data:
 	bash scripts/fetch_rao_data.sh

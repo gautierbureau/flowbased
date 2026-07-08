@@ -12,13 +12,16 @@ The written theory is in French (see `docs/`); the code and this README are in E
 
 ## What's inside
 
-- **A theory document** (`docs/flowbased_theorie.pdf`) covering, from first
+- **A theory document** (`docs/flowbased.pdf`, in French) covering, from first
   principles: the DC power-flow derivation of **PTDF** (`PTDF = Bd·A·X`), the
   nodal→zonal step via **GSK**, the **RAM** (`Fmax − Fref − FRM`, min-RAM 70 %),
   the **CNEC** constraints, the **flow-based domain** (a polytope) and its
-  **vertices**, a geometric reading of the hyperplanes, and the market-coupling
-  context (NTC/ATC vs FB, SDAC/SIDC, coordinated processes, the RAO / CASTOR
-  algorithm).
+  **vertices**, a geometric reading of the hyperplanes, and a beginner-friendly
+  operational tour — actors (TSOs, RCCs, JAO, NEMOs), time horizons, the
+  coordinated capacity-calculation process, the net-position forecast (D2CF),
+  market coupling and its algorithms (SDAC/EUPHEMIA, SIDC), the coordinated
+  security analysis (CSA) for the Core region, and the RAO / CASTOR algorithm —
+  with diagrams and timelines throughout.
 - **A fully-worked 3-zone example** reproduced three ways so the numbers match:
   by hand (matrix `B`), analytically in Python, and by pypowsybl.
 - **Runnable scripts** (`src/`) where all the physics comes from pypowsybl:
@@ -31,8 +34,7 @@ The written theory is in French (see `docs/`); the code and this README are in E
 ```
 flowbased-toolkit/
 ├── docs/
-│   ├── flowbased_theorie.pdf/.tex   # theory only (no code) — main document
-│   └── flowbased.pdf/.tex           # full version, includes the pypowsybl code
+│   └── flowbased.pdf/.tex           # the theory + operational document (French)
 ├── src/
 │   ├── ptdf_pypowsybl.py            # PTDF: NumPy analytic vs pypowsybl (asserted equal)
 │   ├── theorie_flowbased_pypowsybl.py  # full chain + domain plot (→ figures/)
@@ -82,7 +84,7 @@ make install    # pip install -r requirements.txt
 make ptdf       # run example 1
 make theory     # run example 2 (generates the figure)
 make rao        # run example 3
-make pdfs       # build the LaTeX documents (needs a TeX Live install)
+make pdfs       # build the LaTeX document (needs a TeX Live install)
 ```
 
 ### Expected results (sanity check)
@@ -94,15 +96,15 @@ make pdfs       # build the LaTeX documents (needs a TeX Live install)
 - The OpenRAO example selects the Belgian PST, moves it to **tap −16**, and
   raises the minimum margin from **2666.7 → 2719.0 MW** (reproduced by DC load flow).
 
-## Building the PDFs
+## Building the PDF
 
 ```bash
 cd docs
-pdflatex flowbased_theorie.tex && pdflatex flowbased_theorie.tex   # twice for the ToC
+pdflatex flowbased.tex && pdflatex flowbased.tex && pdflatex flowbased.tex   # 3× for the ToC and cross-refs
 ```
 
-Note: the `.tex` sources have `babel[french]` and `lmodern` commented out (they
-were unavailable in the build environment used to generate the committed PDFs).
+Note: the `.tex` source has `babel[french]` and `lmodern` commented out (they
+were unavailable in the build environment used to generate the committed PDF).
 With a full TeX Live install you can re-enable them for proper French
 hyphenation and typography.
 
