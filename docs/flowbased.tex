@@ -11,7 +11,9 @@
 \usepackage[most]{tcolorbox}
 \usepackage{enumitem}
 \usepackage{listings}
+\usepackage{textcomp}
 \usepackage{hyperref}
+\providecommand{\euro}{\texteuro}
 
 % ---- style code Python ----
 \definecolor{codebg}{HTML}{F6F8FA}
@@ -288,6 +290,21 @@ dépend que des réactances \emph{relatives} et de la topologie, jamais du
 point de fonctionnement (conséquence de la linéarité du DC).
 \end{defbox}
 
+\begin{rembox}{Ce que le DC néglige — et pourquoi on l'accepte}
+Le load-flow DC ignore trois choses~: les \textbf{pertes} (résistances
+négligées), la \textbf{puissance réactive et la tension}, et les limites en
+tension. Les PTDF DC sont donc \emph{exacts} pour un réseau sans pertes~; face
+à un calcul AC complet, l'écart sur les flux \emph{actifs} d'un réseau très
+haute tension ($r\ll x$) reste en général faible, mais non nul. Les pertes
+sont traitées \emph{à part} (facteurs de pertes, ajustement du bilan), et une
+partie de l'erreur résiduelle est couverte par le FRM (\S3).\\[3pt]
+Pourquoi ce compromis~? Parce que la linéarité est \emph{ce qui rend tout le
+reste possible}~: elle garantit que le domaine est un \textbf{polytope
+convexe} et que le couplage (EUPHEMIA) reste un problème traitable. Un modèle
+AC exact donnerait un domaine non convexe, inexploitable à l'échelle
+européenne.
+\end{rembox}
+
 \subsection{Du nodal au zonal : la GSK}
 \label{sec:gsk}
 
@@ -339,6 +356,30 @@ GSK} des colonnes nodales de la zone. Deux variantes usuelles :
         sensibilité à un échange bilatéral $A\!\to\!B$.
 \end{itemize}
 
+\paragraph{Comment choisit-on la GSK ?} Plusieurs stratégies coexistent, et
+le choix n'est pas neutre~:
+\begin{itemize}[nosep,leftmargin=1.4em]
+  \item au \textbf{prorata de la production} du moment (les centrales en
+        marche montent proportionnellement)~;
+  \item au \textbf{prorata de la puissance installée} $P_{\max}$~;
+  \item au \textbf{prorata de la marge disponible} (\emph{headroom}) des
+        unités~;
+  \item en ne retenant que les \textbf{unités flexibles} (dispatchables),
+        en excluant p.\,ex.\ la base nucléaire ou les EnR fatales.
+\end{itemize}
+La \textbf{GLSK} (\emph{Generation and Load Shift Key}) étend l'idée en
+laissant aussi la \emph{charge} porter une part de la variation.
+
+\begin{rembox}{La GSK est une approximation — et ça compte}
+Le vrai « point d'injection » d'un mégawatt supplémentaire dépend du dispatch
+\emph{réel}, inconnu deux jours à l'avance. La GSK n'est donc qu'une
+\emph{hypothèse}~: si elle s'éloigne du dispatch effectif, les PTDF zonaux —
+et donc tout le domaine — sont \emph{biaisés}. C'est l'une des principales
+sources d'imprécision du flow-based (avec la prévision de position nette).
+Une partie de l'écart est absorbée par le FRM~; le reste est corrigé aux
+horizons plus proches (intraday) et en temps réel.
+\end{rembox}
+
 \begin{rembox}{Effet d'une contingence sur le PTDF}
 Après la perte d'une branche $\ell$, la topologie change, donc les PTDF
 aussi. On peut recalculer $X$ sur le réseau amputé, ou utiliser les
@@ -348,6 +389,65 @@ aussi. On peut recalculer $X$ sur le réseau amputé, ou utiliser les
      \;+\; \mathrm{LODF}_{k,\ell}\,\mathrm{PTDF}_{\ell,i}.
 \]
 Ce sont ces PTDF post-incident qui alimentent les contraintes de CNEC.
+\end{rembox}
+
+\subsection{Flux de bouclage, de transit et flux internes}
+\label{sec:loopflow}
+
+Le modèle zonal ne suit que les \emph{positions nettes}. Or le flux physique
+sur une ligne dépend aussi de \emph{où}, à l'intérieur des zones, on produit et
+on consomme — pas seulement du solde de chaque zone. D'où une distinction
+essentielle~:
+\begin{itemize}[nosep,leftmargin=1.4em]
+  \item \textbf{flux alloué (de transit)}~: la part due aux \emph{échanges
+        commerciaux entre zones} — exactement ce que le marché fixe via
+        $\sum_z \PTDF_{c,z}\,\Delta\NP_z$~;
+  \item \textbf{flux interne}~: dû aux échanges \emph{internes} à une zone
+        (son propre dispatch nord$\leftrightarrow$sud)~;
+  \item \textbf{flux de bouclage} (\emph{loop flow})~: la part des flux
+        internes d'une zone qui \emph{traverse les réseaux des zones voisines}
+        sans changer sa position nette.
+\end{itemize}
+
+\begin{center}
+\begin{tikzpicture}[font=\footnotesize]
+  \node[draw=coreblue,rounded corners=3pt,fill=coreblue!6,
+        minimum width=2.2cm,minimum height=2.7cm] (DE) at (0,0){};
+  \node[coreblue,anchor=north,font=\scriptsize,inner sep=2pt] at (DE.north){DE};
+  \node[font=\scriptsize] at (0,0.7){prod. (Nord)};
+  \node[font=\scriptsize] at (0,-0.7){conso (Sud)};
+  \draw[-{Stealth[length=2mm]},coregrey,thick] (0,0.45)--(0,-0.45);
+  \node[draw=coregrey,rounded corners=2pt,fill=black!3,
+        minimum width=1.5cm,minimum height=2.7cm] (NL) at (-3.3,0){};
+  \node[anchor=north,font=\scriptsize,inner sep=2pt] at (NL.north){NL/BE};
+  \node[draw=coregrey,rounded corners=2pt,fill=black!3,
+        minimum width=1.5cm,minimum height=2.7cm] (PL) at (3.3,0){};
+  \node[anchor=north,font=\scriptsize,inner sep=2pt] at (PL.north){PL/CZ};
+  % petale gauche
+  \draw[red!70!black,thick,dashed,-{Stealth[length=2mm]}] ([yshift=5mm]DE.west) to[bend left=28] ([yshift=5mm]NL.east);
+  \draw[red!70!black,thick,dashed,-{Stealth[length=2mm]}] ([yshift=-5mm]NL.east) to[bend left=28] ([yshift=-5mm]DE.west);
+  % petale droit
+  \draw[red!70!black,thick,dashed,-{Stealth[length=2mm]}] ([yshift=5mm]DE.east) to[bend right=28] ([yshift=5mm]PL.west);
+  \draw[red!70!black,thick,dashed,-{Stealth[length=2mm]}] ([yshift=-5mm]PL.west) to[bend right=28] ([yshift=-5mm]DE.east);
+  \node[red!70!black,font=\scriptsize] at (0,-1.85){flux de bouclage};
+  \node[align=center,font=\scriptsize] at (0,-2.3){position nette DE $=0$, mais flux physique $\neq 0$ chez les voisins};
+\end{tikzpicture}
+\end{center}
+
+\noindent L'exemple typique~: une forte production éolienne au nord de
+l'Allemagne, consommée au sud, emprunte — par les lois de Kirchhoff — les
+réseaux néerlandais, belge et polonais, alors même que la position nette
+allemande peut être nulle. Ce flux \emph{occupe de la capacité physique sans
+correspondre à aucun échange commercial}.
+
+\begin{rembox}{Pourquoi c'est le nerf de la guerre}
+Les flux de bouclage se logent dans le flux de référence $\Fref$~: ils
+\emph{rognent le RAM} offert au marché, au détriment des pays « traversés ».
+C'est précisément la raison d'être du plancher \textbf{minRAM 70~\%} (\S3,
+\emph{Clean Energy Package})~: garantir qu'au moins 70~\% de chaque élément
+reste disponible pour l'échange transfrontalier, en forçant les GRT à
+\emph{gérer} les boucles (redispatching, actions correctives — \S\ref{sec:csa}
+et \S\ref{sec:rao}) plutôt qu'à amputer la capacité commerciale.
 \end{rembox}
 
 % =====================================================================
@@ -402,6 +502,28 @@ qu'au moins \textbf{70~\%} de la capacité de chaque élément soit offerte aux
 \]
 Si le RAM calculé tombe en dessous, un ajustement le relève à ce plancher.
 \end{rembox}
+
+\paragraph{Pour aller plus loin : la formule opérationnelle.} La version
+ci-dessus est pédagogique. En exploitation (Core), le RAM comporte des termes
+supplémentaires~:
+\[
+  \boxed{\;\RAM_c \;=\; \Fmax_c \;-\; \FRM_c \;-\; F_{0,c} \;-\; \mathrm{IVA}_c\;}
+\]
+\begin{itemize}[nosep,leftmargin=1.4em]
+  \item $F_{0,c}$ ($=\Fref_c$)~: flux de référence du programme de référence,
+        \emph{qui inclut les flux de bouclage et internes} (\S\ref{sec:loopflow})~;
+  \item $\mathrm{IVA}_c$ (\emph{Individual Validation Adjustment})~: la
+        réduction que \emph{chaque GRT} applique en \textbf{validation} pour
+        des risques non modélisés (contraintes de tension, incertitudes
+        locales, sécurité)~;
+  \item $\Fmax_c$ n'est pas figé~: il dérive du courant admissible
+        ($I_{\max}$) et dépend de la tension et de la saison.
+\end{itemize}
+Deux mécanismes encadrent ensuite le résultat~: la \textbf{LTA inclusion}
+garantit que le domaine contient les capacités \emph{déjà allouées en long
+terme} (les droits vendus doivent rester réalisables), et le relèvement au
+\textbf{minRAM} assure le plancher de 70~\% (indicateur \textbf{MACZT}, la marge
+réellement offerte à l'échange transfrontalier).
 
 % =====================================================================
 \section{Le CNEC : la brique qui définit les contraintes}
@@ -1410,6 +1532,52 @@ qu'il respecte le domaine.\\[2pt]
 moins $0{,}7\,\Fmax$ est offert au marché sur chaque CNEC~: le trader sait
 qu'une part minimale de capacité restera toujours disponible, quelles que
 soient les boucles de flux internes.
+\end{rembox}
+
+\subsection{Formation des prix et rente de congestion}
+\label{sec:prix}
+
+Le \S\ref{sec:trader} a montré \emph{où} une contrainte mord~; voyons
+maintenant \emph{comment} cela fixe les prix. Le couplage produit, pour chaque
+CNEC saturé, un \textbf{prix de l'ombre} $\mu_c\ge 0$ (le dual de la
+contrainte). Le prix d'une zone s'en déduit~:
+\[
+  \pi_z \;=\; \lambda \;-\; \sum_c \mu_c\,\PTDF_{c,z},
+\]
+où $\lambda$ est le prix « système » de référence. Tant qu'aucun CNEC ne
+sature, tous les $\mu_c=0$~: \textbf{un seul prix} partout (marché unique).
+Dès qu'un CNEC mord, son $\mu_c>0$ \emph{écarte} les prix des zones qu'il
+sépare.
+
+\paragraph{Exemple chiffré.} Reprenons l'échange $A\!\to\!B$ saturant $L_{AB}$
+(\S\ref{sec:trader}), avec $\PTDF_{AB,A}=+\tfrac13$, $\PTDF_{AB,B}=-\tfrac13$.
+Supposons un prix système $\lambda=50$~\euro{}/MWh et un prix de l'ombre
+$\mu=10$~\euro{}/MWh sur $L_{AB}$~:
+\[
+  \pi_A = 50 - 10\cdot(+\tfrac13) = 46{,}7,\qquad
+  \pi_B = 50 - 10\cdot(-\tfrac13) = 53{,}3\ \text{\euro{}/MWh}.
+\]
+Le \emph{spread} $\pi_B-\pi_A = \mu\,(\PTDF_{A}-\PTDF_{B}) = 10\cdot\tfrac23 =
+6{,}7$~\euro{}/MWh~: la zone importatrice contrainte (B) devient plus chère.
+
+\paragraph{La rente de congestion.} La différence de prix, multipliée par le
+flux échangé, n'est payée par personne au producteur~: c'est la \textbf{rente
+de congestion}, encaissée par les GRT. Ici, avec $q=300$~MW~:
+\[
+  \text{rente} = (\pi_B-\pi_A)\times q = 6{,}7\times 300 \approx 2000\ \text{\euro{}/h}
+  \;=\; \mu\times\RAM_{AB}=10\times 200 .
+\]
+Les deux expressions coïncident~: la rente vaut aussi \emph{prix de l'ombre
+$\times$ capacité saturée}. Réglementairement (CACM), cette rente sert en
+priorité à \emph{garantir et développer} la capacité d'interconnexion~; pour
+le long terme, JAO la reverse aux détenteurs de droits (FTR/PTR).
+
+\begin{rembox}{Un spread sans frontière congestionnée}
+Comme les prix dépendent des $\PTDF$ de \emph{tous} les CNEC, un spread peut
+s'ouvrir entre deux zones dont la frontière n'est \emph{pas} elle-même
+saturée~: c'est un CNEC \emph{distant} (souvent chargé par des flux de
+bouclage, \S\ref{sec:loopflow}) qui mord. C'est la contrepartie, côté prix,
+des flux « non-intuitifs » du flow-based.
 \end{rembox}
 
 \subsection{L'analyse de sécurité coordonnée (CSA) dans la région Core}
