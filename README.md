@@ -27,8 +27,10 @@ The written theory is in French (see `docs/`); the code and this README are in E
   by hand (matrix `B`), analytically in Python, and by pypowsybl.
 - **Runnable scripts** (`src/`) where all the physics comes from pypowsybl:
   PTDF (nodal & zonal), reference flows, post-contingency PTDF, the flow-based
-  domain (with each vertex validated by a load flow), and an OpenRAO
-  remedial-action optimisation.
+  domain (with each vertex validated by a load flow), an OpenRAO
+  remedial-action optimisation, and a **TSO validation / IVA** example that
+  validates each domain vertex, applies a RAM reduction when a vertex is
+  unsecurable, and contrasts it with the remedial-action (RAO) alternative.
 
 ## Repository layout
 
@@ -39,7 +41,8 @@ flowbased-toolkit/
 ├── src/
 │   ├── ptdf_pypowsybl.py            # PTDF: NumPy analytic vs pypowsybl (asserted equal)
 │   ├── theorie_flowbased_pypowsybl.py  # full chain + domain plot (→ figures/)
-│   └── openrao_remedial_actions.py  # OpenRAO RAO: PST remedial action + DC cross-check
+│   ├── openrao_remedial_actions.py  # OpenRAO RAO: PST remedial action + DC cross-check
+│   └── iva_validation_pypowsybl.py  # TSO validation (IVA): validate each domain vertex, reduce RAM, RAO alternative
 ├── data/rao/                        # network + CRAC + parameters + GLSK (see NOTICE)
 ├── figures/                         # generated plots (a sample is committed)
 ├── scripts/fetch_rao_data.sh        # (re)download the RAO example resources
@@ -76,6 +79,11 @@ python src/theorie_flowbased_pypowsybl.py     # writes figures/domaine_flowbased
 # 3) OpenRAO: optimise a PST remedial action to maximise the minimum margin,
 #    then cross-check the result with an independent DC load flow
 python src/openrao_remedial_actions.py
+
+# 4) TSO validation (IVA): validate each domain vertex by load flow, detect an
+#    unsecurable vertex, reduce the RAM (apply an IVA), re-validate + minRAM
+#    check, and show the OpenRAO alternative (remedial action instead of cut)
+python src/iva_validation_pypowsybl.py
 ```
 
 Or via `make`:
@@ -85,6 +93,7 @@ make install    # pip install -r requirements.txt
 make ptdf       # run example 1
 make theory     # run example 2 (generates the figure)
 make rao        # run example 3
+make iva        # run example 4 (TSO validation / IVA)
 make pdfs       # build the LaTeX document (needs a TeX Live install)
 ```
 
@@ -96,6 +105,10 @@ make pdfs       # build the LaTeX document (needs a TeX Live install)
   on the active CNECs equals `±RAM` (checked by load flow).
 - The OpenRAO example selects the Belgian PST, moves it to **tap −16**, and
   raises the minimum margin from **2666.7 → 2719.0 MW** (reproduced by DC load flow).
+- The IVA example flags **4 vertices** as unsecurable (post-contingency flow
+  `±500 > 420 MW`), applies an **IVA of 80 MW** (RAM `500 → 420`, domain area
+  `−11.8 %`), lands exactly on the **minRAM floor** (`0.7 × 600 = 420`), and then
+  shows the RAO alternative (PST **tap −16**, margin **2666.7 → 2719.0 MW**).
 
 ## Building the PDF
 

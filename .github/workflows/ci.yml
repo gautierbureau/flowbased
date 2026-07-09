@@ -29,6 +29,9 @@ jobs:
       - name: OpenRAO remedial actions
         run: python src/openrao_remedial_actions.py
 
+      - name: TSO validation (IVA) of domain vertices
+        run: python src/iva_validation_pypowsybl.py
+
       - name: Upload generated figure
         uses: actions/upload-artifact@v4
         with:
