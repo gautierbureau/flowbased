@@ -1,4 +1,4 @@
-.PHONY: help install ptdf theory rao iva pdfs fetch-data clean
+.PHONY: help install ptdf theory rao iva iva-rao pdfs fetch-data clean
 
 help:
 	@echo "make install     - install Python dependencies"
@@ -6,6 +6,7 @@ help:
 	@echo "make theory      - run full flow-based theory example (+ figure)"
 	@echo "make rao         - run OpenRAO remedial-action example"
 	@echo "make iva         - run TSO validation (IVA) of the domain vertices"
+	@echo "make iva-rao     - run IVA with RAO in the loop (remedy before curtailing)"
 	@echo "make pdfs        - build the LaTeX document (needs TeX Live)"
 	@echo "make fetch-data  - (re)download the OpenRAO example resources"
 	@echo "make clean       - remove LaTeX build artifacts"
@@ -24,6 +25,9 @@ rao:
 
 iva:
 	python src/iva_validation_pypowsybl.py
+
+iva-rao:
+	python src/iva_rao_loop_pypowsybl.py
 
 pdfs:
 	cd docs && pdflatex -interaction=nonstopmode flowbased.tex && pdflatex -interaction=nonstopmode flowbased.tex && pdflatex -interaction=nonstopmode flowbased.tex

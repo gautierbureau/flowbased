@@ -1299,7 +1299,10 @@ réseau), mais \textbf{surveillée par les régulateurs} (ACER, régulateurs
 nationaux)~: un IVA excessif rogne la capacité offerte et entre en tension avec
 l'objectif \textbf{minRAM 70~\%}, si bien que les réductions doivent être
 \emph{justifiées}. Une fois chaque GRT satisfait, le domaine consolidé est
-publié (JAO) pour le couplage.
+publié (JAO) pour le couplage. Notons l'\emph{autre} levier de validation~:
+plutôt que de réduire la capacité (IVA), le GRT peut chercher à
+\textbf{sécuriser} le point litigieux par une \textbf{action corrective} — le
+RAO (\S\ref{sec:rao}). \emph{Corriger plutôt que couper.}
 
 \subsection{La \emph{net position forecast} (D2CF) et le flux de référence}
 \label{sec:npf}
@@ -1826,7 +1829,8 @@ le jeu d'actions correctives qui sécurise le réseau au meilleur coût.
 \textbf{OpenRAO} (LF Energy / PowSyBl) implémente le RAO de référence,
 \textbf{CASTOR}. Ses entrées : le modèle de réseau commun (CGM), un
 \textbf{CRAC} (les CNEC, les contingences et les actions correctives
-disponibles) et des paramètres.
+disponibles) et des paramètres. Dans l'API \texttt{pypowsybl}, on l'invoque
+via le \emph{provider} \texttt{SearchTreeRao}.
 
 \paragraph{Fonction objectif.} Le plus souvent \textsc{max-min-margin} :
 on maximise la \emph{marge minimale} sur l'ensemble des CNEC. Une variante
@@ -1865,6 +1869,16 @@ reproduit exactement ce résultat : le déphaseur reporte du flux de l'élément
 le plus chargé vers ceux qui avaient de la marge, relevant le \emph{minimum}
 global.
 \end{rembox}
+
+\paragraph{IVA ou RAO : couper ou corriger.} Le RAO éclaire aussi l'étape de
+\textbf{validation} du calcul de capacité (\S\ref{sec:cccpasapas}). Face à un
+point d'exploitation non sécurisable, un GRT dispose de \emph{deux} leviers~:
+\textbf{réduire la capacité} (un IVA sur le RAM), ou \textbf{prouver qu'une
+action corrective} le sécurise (un RAO). Le second garde la capacité ouverte
+au marché~; l'IVA n'intervient qu'en \emph{dernier recours}, lorsque même la
+meilleure action corrective ne suffit plus. C'est la logique « corriger
+d'abord, couper en dernier », que l'on peut rejouer numériquement sur les
+réseaux d'exemple (validation des sommets du domaine, puis RAO dans la boucle).
 
 % =====================================================================
 \section{Synthèse}

@@ -28,9 +28,10 @@ The written theory is in French (see `docs/`); the code and this README are in E
 - **Runnable scripts** (`src/`) where all the physics comes from pypowsybl:
   PTDF (nodal & zonal), reference flows, post-contingency PTDF, the flow-based
   domain (with each vertex validated by a load flow), an OpenRAO
-  remedial-action optimisation, and a **TSO validation / IVA** example that
-  validates each domain vertex, applies a RAM reduction when a vertex is
-  unsecurable, and contrasts it with the remedial-action (RAO) alternative.
+  remedial-action optimisation, a **TSO validation / IVA** example that
+  validates each domain vertex and applies a RAM reduction when a vertex is
+  unsecurable, and a variant with **RAO (CASTOR) in the loop** that asks
+  OpenRAO to secure each point first and only applies an IVA when it can't.
 
 ## Repository layout
 
@@ -42,7 +43,8 @@ flowbased-toolkit/
 │   ├── ptdf_pypowsybl.py            # PTDF: NumPy analytic vs pypowsybl (asserted equal)
 │   ├── theorie_flowbased_pypowsybl.py  # full chain + domain plot (→ figures/)
 │   ├── openrao_remedial_actions.py  # OpenRAO RAO: PST remedial action + DC cross-check
-│   └── iva_validation_pypowsybl.py  # TSO validation (IVA): validate each domain vertex, reduce RAM, RAO alternative
+│   ├── iva_validation_pypowsybl.py  # TSO validation (IVA): validate each domain vertex, reduce RAM, RAO alternative
+│   └── iva_rao_loop_pypowsybl.py    # IVA with RAO (CASTOR) in the loop: remedy before curtailing
 ├── data/rao/                        # network + CRAC + parameters + GLSK (see NOTICE)
 ├── figures/                         # generated plots (a sample is committed)
 ├── scripts/fetch_rao_data.sh        # (re)download the RAO example resources
@@ -84,6 +86,11 @@ python src/openrao_remedial_actions.py
 #    unsecurable vertex, reduce the RAM (apply an IVA), re-validate + minRAM
 #    check, and show the OpenRAO alternative (remedial action instead of cut)
 python src/iva_validation_pypowsybl.py
+
+# 5) IVA with RAO in the loop: at each stressed validation point, ask OpenRAO
+#    (CASTOR) whether a remedial action secures it; apply an IVA only when it
+#    doesn't — "remedy first, curtail last"
+python src/iva_rao_loop_pypowsybl.py
 ```
 
 Or via `make`:
@@ -94,6 +101,7 @@ make ptdf       # run example 1
 make theory     # run example 2 (generates the figure)
 make rao        # run example 3
 make iva        # run example 4 (TSO validation / IVA)
+make iva-rao    # run example 5 (IVA with RAO in the loop)
 make pdfs       # build the LaTeX document (needs a TeX Live install)
 ```
 
@@ -109,6 +117,10 @@ make pdfs       # build the LaTeX document (needs a TeX Live install)
   `±500 > 420 MW`), applies an **IVA of 80 MW** (RAM `500 → 420`, domain area
   `−11.8 %`), lands exactly on the **minRAM floor** (`0.7 × 600 = 420`), and then
   shows the RAO alternative (PST **tap −16**, margin **2666.7 → 2719.0 MW**).
+- The IVA-with-RAO example (12-node network) sweeps stressed validation points:
+  the Belgian PST relieves the Belgium–France CNEC by **~157 MW** (tap −16), so
+  some points are **secured by the RAO (IVA avoided)** while more stressed ones
+  still **need an IVA** — remedy first, curtail last.
 
 ## Building the PDF
 

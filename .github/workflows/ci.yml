@@ -32,6 +32,9 @@ jobs:
       - name: TSO validation (IVA) of domain vertices
         run: python src/iva_validation_pypowsybl.py
 
+      - name: IVA with RAO in the loop (remedy before curtailing)
+        run: python src/iva_rao_loop_pypowsybl.py
+
       - name: Upload generated figure
         uses: actions/upload-artifact@v4
         with:
