@@ -453,6 +453,7 @@ et \S\ref{sec:rao}) plutôt qu'à amputer la capacité commerciale.
 
 % =====================================================================
 \section{Le RAM : le second membre des contraintes}
+\label{sec:ram}
 
 Le \emph{Remaining Available Margin} est la marge encore disponible sur un
 CNEC pour absorber les échanges commerciaux :
@@ -1284,6 +1285,21 @@ document~: les $\PTDF$ (§\ref{sec:ptdf} et suivantes), passés du nodal au zona
 par la $\GSK$/GLSK, puis les RAM. La nouveauté ici est \emph{organisationnelle}~:
 tout est fait sur un modèle \emph{commun} à treize pays, et validé
 collectivement avant d'être offert au marché.
+
+\paragraph{L'étape de validation : là où intervient l'IVA.} Le calcul
+automatisé (étapes 3--5) produit un domaine \emph{provisoire}. Avant
+publication, \textbf{chaque GRT revoit les RAM de ses propres CNEC} et peut les
+\emph{réduire} — jamais les augmenter — en appliquant l'\textbf{IVA}
+(\emph{Individual Validation Adjustment}, cf.\ \S\ref{sec:ram}). Il couvre ainsi
+ce que le flow-based, purement actif et $N\!-\!1$, ne capte pas~: contraintes
+de \textbf{tension / réactif}, stabilité dynamique, contraintes
+\textbf{externes ou nationales}, incertitudes opérationnelles locales. C'est une
+étape \textbf{manuelle et souveraine} (chaque GRT reste responsable de son
+réseau), mais \textbf{surveillée par les régulateurs} (ACER, régulateurs
+nationaux)~: un IVA excessif rogne la capacité offerte et entre en tension avec
+l'objectif \textbf{minRAM 70~\%}, si bien que les réductions doivent être
+\emph{justifiées}. Une fois chaque GRT satisfait, le domaine consolidé est
+publié (JAO) pour le couplage.
 
 \subsection{La \emph{net position forecast} (D2CF) et le flux de référence}
 \label{sec:npf}
