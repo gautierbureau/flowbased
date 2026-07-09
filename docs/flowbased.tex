@@ -1628,11 +1628,71 @@ Le c\oe{}ur algorithmique de cette optimisation — choisir le meilleur jeu
 d'actions correctives au moindre coût — est précisément le \textbf{RAO},
 détaillé maintenant.
 
+\subsection{L'échéance de l'équilibrage (temps réel)}
+\label{sec:balancing}
+
+Une fois le guichet intraday fermé (\,$\sim$1\,h avant la livraison), plus
+aucune bourse n'ajuste les programmes. Or l'équilibre
+\emph{production $=$ consommation} doit être tenu \emph{à la seconde}
+(fréquence 50~Hz). L'équilibrage est donc la \textbf{dernière échéance}~: non
+plus un marché ouvert, mais une \textbf{activation pilotée par le GRT}, qui
+appelle des offres en temps réel par ordre de mérite. C'est le passage de la
+logique « enchère / continu » à la logique « activation optimisée ».
+
+\paragraph{Une cascade de réserves.} L'ajustement s'appuie sur des réserves
+\textbf{hiérarchisées}, de plus en plus lentes, chacune prenant \emph{le
+relais} de la précédente~:
+
+\begin{center}\footnotesize
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{@{}p{2.2cm}p{2.9cm}p{2.7cm}p{2.3cm}p{1.7cm}@{}}
+\toprule
+\textbf{Réserve} & \textbf{Rôle} & \textbf{Déclenchement} & \textbf{Délai (o.\,de g.)} & \textbf{Plateforme} \\
+\midrule
+\textbf{FCR} \newline (primaire)     & \emph{contenir} la fréquence          & automatique, synchrone      & pleine $\le$30\,s      & coop.\ FCR \\
+\textbf{aFRR} \newline (secondaire)  & \emph{restaurer} 50~Hz                & automatique (signal GRT)    & pleine $\sim$5\,min    & PICASSO \\
+\textbf{mFRR} \newline (tertiaire)   & \emph{relayer}, gros écarts           & manuel                      & $\sim$12,5\,min        & MARI \\
+\textbf{RR} \newline (remplacement)  & \emph{reconstituer} les réserves      & manuel                      & $\sim$30\,min          & TERRE \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tikzpicture}[x=1cm,y=1cm,font=\scriptsize]
+  \draw[axis] (-0.2,0)--(12.5,0) node[right,font=\scriptsize]{temps};
+  \foreach \x/\lab in {0/{incident},2/{30\,s},5/{$\sim$5\,min},8/{$\sim$15\,min},11/{$\sim$30\,min}}
+    {\draw[coregrey](\x,0.1)--(\x,-0.1); \node[below,font=\scriptsize] at (\x,-0.14){\lab};}
+  \fill[coreblue!40,rounded corners=1pt] (0,0.35)   rectangle (2,0.8);
+    \node[coreblue!60!black] at (1,0.575){\textbf{FCR}};
+  \fill[coreblue!24,rounded corners=1pt] (0.4,0.9)  rectangle (5,1.35);
+    \node[coreblue!60!black] at (2.7,1.125){\textbf{aFRR}};
+  \fill[orange!30,rounded corners=1pt] (2,1.45)     rectangle (8,1.9);
+    \node[orange!60!black] at (5,1.675){\textbf{mFRR}};
+  \fill[black!14,rounded corners=1pt] (5,2.0)       rectangle (11,2.45);
+    \node[coregrey] at (8,2.225){\textbf{RR}};
+  \node[below,align=center,font=\scriptsize,text=coregrey] at (6,-0.55)
+    {contenir (FCR) $\rightarrow$ restaurer (aFRR) $\rightarrow$ relayer (mFRR) $\rightarrow$ reconstituer (RR)};
+\end{tikzpicture}
+\end{center}
+
+\paragraph{Capacité vs énergie.} On distingue la \textbf{capacité} (la réserve
+\emph{réservée à l'avance}) de l'\textbf{énergie} (l'\emph{activation}
+effective en temps réel)~: un acteur peut être rémunéré pour \emph{être
+disponible}, puis pour l'énergie réellement fournie.
+
+\paragraph{Coordination européenne et lien flow-based.} Avant toute activation,
+l'\textbf{IGCC} \emph{nette} les déséquilibres de sens opposés entre pays. Les
+activations transfrontalières (PICASSO/MARI/TERRE, cf.\ Annexe~\ref{sec:balancing-eu})
+empruntent la \textbf{capacité transfrontalière résiduelle} — celle qui reste
+dans le domaine flow-based \emph{après} le day-ahead et l'intraday. La période
+de règlement des écarts est harmonisée à \textbf{15~min}. Le dispositif
+\emph{français} (mécanisme d'ajustement, responsable d'équilibre, prix des
+écarts) fait l'objet du \S\ref{sec:ajustement}.
+
 \subsection{Zoom France : l'ajustement et le responsable d'équilibre}
 \label{sec:ajustement}
 
-Une fois les marchés fermés, l'équilibre \emph{production $=$ consommation}
-doit encore être tenu à la seconde près. En France, RTE s'appuie sur deux
+Côté français, cette échéance (\S\ref{sec:balancing}) repose sur deux
 dispositifs complémentaires~: la \textbf{responsabilité d'équilibre} (qui
 \emph{responsabilise} chaque acteur en amont) et le \textbf{mécanisme
 d'ajustement} (qui \emph{corrige} en temps réel).
